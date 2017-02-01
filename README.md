@@ -9,7 +9,6 @@ in root of project:
 run the following commands :
 npm install --save express
 npm install --save socket.io
-npm install angular@1.6.1 --save
 
 Run :
 
