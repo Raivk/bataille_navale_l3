@@ -4,6 +4,8 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
+var rooms = [];
+
 //We'll use the public folder, so we tell the server to place public in front of each path (avoid repetitions)
 app.use(express.static(__dirname + '/public'));
 
