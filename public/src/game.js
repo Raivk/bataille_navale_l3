@@ -52,7 +52,8 @@ function annuler_salon_prive(){
 function demarrer_salon(){
     socket.emit('private_init');
     socket.on('key_code', function(data){
-        document.getElementById("key").innerHTML = data.kc;
+        document.getElementById("key").innerHTML = data["kc"];
+        console.log(data.kc);
         switch_page("home","private_room_waiting");
         //ATTENTE DE JOUEUR
         socket.on('found_rival', function(){
@@ -67,7 +68,7 @@ function demarrer_salon(){
 
 function rejoindre_prive(){
     //RECUPERER LES DONNEES DU CHAMPS DE CLE
-    socket.emit("private_search", {sal_key : 0123});
+    socket.emit("private_search", {'sal_key' : 'TCxtRk12bADBxRMsNhiQS'});
     socket.on("key_response", function(data){
         if(data.found){
             //PARTIE TROUVEE, FAIRE QUELQUE CHOSE

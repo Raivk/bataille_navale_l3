@@ -3,6 +3,9 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var KeyGenerator = require('uuid-key-generator');
+
+var keygen = new KeyGenerator();
 
 var rooms = [];
 
@@ -22,27 +25,55 @@ io.on('connection', function (socket) {
     
     socket.on('mmr_search', function(){
         console.log("demarrage d'une recherche");
-        //RECHERCHER SALON
         
-        //TROUVE
-        console.log("partie trouvee");
-        socket.emit('found');
+        
+        
+        //RECHERCHER SALON
+        if(rooms.length == 0){
+            console.log("no rooms 1");
+            rooms.push({
+                'socket1' : socket,
+                'private' : false
+            });
+            socket.emit('not_found');
+        }
+        else{
+            
+            console.log("no rooms 2");
+            salonFound = rooms.find(function(element){
+                return element.socket2 == undefined && element.private == false;
+            });
+            
+            if(salonFound == undefined){
+                rooms.push({
+                    'socket1' : socket,
+                    'private' : false
+                });
+                socket.emit('not_found');
+                console.log("partie solo cree");
+            }
+            else{
+                salonFound.socket2 = socket;
+                console.log("partie rejointe");
+                socket.emit('found');
+                salonFound.socket1.emit('found');
+                salonFound.ready2 = false;
+            }
+        }
         
         socket.on('cancel_search',function(data){
             if(data.sal_state){
                 //SUPPRESION DU SALON
                 console.log("cancel recherche adversaire");
+                rooms.splice(rooms.findIndex(function(element){
+                    return element.socket1 == socket;
+                }), 1);
             }
             else{
                 //ARRET DE LA RECHERCHE
                 console.log("cancel recherche salon");                
             }
         });
-        
-        //PAS TROUVE
-        //OUVRIR UN SALON PUBLIC
-        //console.log("partie pas trouvee, ouverture de salon public");
-        //socket.emit('not_found');
     });
     
     //SALON PRIVE-------------------------------
@@ -50,12 +81,20 @@ io.on('connection', function (socket) {
     socket.on('private_init', function(){
         //CALCULER UNE CLE
         console.log("ouverture d'un salon prive");
-        var key = 0123;
-        socket.emit('key_code',{kc:key});
-        
+        var key = keygen.generateKey();
+        rooms.push({
+            'socket1' : socket,
+            'key' : key,
+            'private' : true
+        })
+        socket.emit('key_code',{'kc':key});
+        console.log(key);
         socket.on('cancel_private',function(){
             //SUPPRESSION DU SALON PRIVE
             console.log("cancel private");
+            rooms.splice(rooms.findIndex(function(element){
+                return element.key == key;
+            }), 1);
         })
         
         //RIVAL TROUVE
@@ -67,13 +106,17 @@ io.on('connection', function (socket) {
     socket.on("private_search", function(data){
         //attribut en question : data.sal_key
         console.log("recherche de salon pour la clé "+data.sal_key);
-        var temporary = 0123;
-        if(data.sal_key == temporary){
+        salonPrivate = rooms.find(function(element){
+            return element.key == data.sal_key;
+        })
+        if(salonPrivate != undefined){
             //CHANGER LE TEST POUR UN PARCOURS DES CLES
             //ICI C'EST QUAND ON A TROUVE LA CLE QUI CORRESPOND
             //TESTER SI IL Y A DE LA PLACE DANS LE SALON
             console.log("cle valide, preparation de partie");
+            salonPrivate.socket2 = socket;
             socket.emit("key_response",{found:true});
+            salonPrivate.socket1.emit('found_rival');
         }
         else{
             //PAS VALIDE
@@ -86,12 +129,29 @@ io.on('connection', function (socket) {
     
     socket.on("ready",function(){
         //PREVENIR L'ADVERSAIRE
-        //SI LES DEUX SON PRET
+        //SI LES DEUX SONT PRET
         console.log("quelqu'un est pret");
-        var both_ready = true;
-        if(both_ready){
+        
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket;
+        })
+        
+        
+        if(salonFound == undefined){
+            salonFound = rooms.find(function(element){
+                return element.socket2 == socket;
+            })
+            if(salonFound != undefined){salonFound.ready2 = true;}
+        }
+        else{
+            salonFound.ready1 = true;
+        }
+        
+        
+        if(salonFound.ready1 && salonFound.ready2){
             console.log("on demarre la partie");
-            socket.emit("go_party");
+            salonFound.socket1.emit("go_party");
+            salonFound.socket2.emit("go_party");
             //PREVENIR L'AUTRE : DEMMARER LA PARTIE
         }
         else{
@@ -104,6 +164,29 @@ io.on('connection', function (socket) {
         //PREVENIR L'AUTRE QUE C'EST FOUTU
         //evenement "other_cancel" à envoyer à l'autre joueur
         console.log("annulation de partie au menu pret");
+        
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket;
+        })
+        
+        
+        if(salonFound == undefined){
+            salonFound = rooms.find(function(element){
+                return element.socket2 == socket;
+            })
+            if(salonFound != undefined){
+                salonFound.ready2 = false;
+                salonFound.socket1.emit('other_cancel');
+            }
+            
+        }
+        else{
+            salonFound.ready1 = false;
+            salonFound.socket2.emit('other_cancel');
+        }
+        
+        
+        
     });
     
     //INGAME-------------------------------
