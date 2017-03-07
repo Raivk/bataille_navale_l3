@@ -49,7 +49,18 @@
     
     <div id="ingame" class="hide_by_default">
         <button class="pure-button" onclick="quitter_partie()">Quitter la partie</button>
-        <h1>EN JEU !!!!</h1>
+        <div class="grid-j"></div>
+        <div class="grid-b"></div>
+        <div class="imgboat">
+            <img  class="boat" src="assets/carre_noir.jpg" id="porte-avion" height="210" width="42" draggable="true" taille="5" pos="h">
+            <img class="boat" src="assets/carre_noir.jpg" id="croiseur" height="168" width="42" draggable="true" taille="4" pos="h">
+            <img class="boat" src="assets/carre_noir.jpg" id="contre-torpilleur" height="126" width="42" draggable="true" taille="3" pos="v">
+            <img class="boat" src="assets/carre_noir.jpg" id="sous-marin" height="126" width="42" draggable="true" taille="3" pos="v">
+            <img class="boat" src="assets/carre_noir.jpg" id="torpilleur" height="84" width="42" draggable="true" taille="2" pos="v">
+        </div>
+        <script type="text/javascript" src="script.js"></script>
+        <br>
+        <input id="jouer" type="button" value="Jouer" onclick="jouer()">
     </div>
     
     

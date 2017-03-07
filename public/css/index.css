@@ -1,3 +1,43 @@
+canvas {
+    border: 1px solid black;
+}
+
+.grid-cell {
+		vertical-align: top;
+		height: 40px;
+		width: 40px;
+		display: inline-block;
+		background-color: #99C2E1;
+		margin: 1px;
+		border-radius: 2px;
+}
+
+.grid-j {
+    display: inline-block;
+	position: relative;
+	vertical-align: top;
+	padding: 5px;
+	height: 420px;
+	width: 420px;
+	background-color: #25567B;
+	border-radius: 5px;
+}
+
+.grid-b {
+    display: inline-block;
+	position: relative;
+	vertical-align: top;
+	padding: 5px;
+	height: 420px;
+	width: 420px;
+	background-color: grey;
+	border-radius: 5px;
+}
+
+img {
+    margin-right: 10px;
+}
+
 .hide_by_default{
     display: none;
 }
