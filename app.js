@@ -193,7 +193,45 @@ io.on('connection', function (socket) {
     
     socket.on("quit_game",function(){
         //PREVENIR L'AUTRE QUE SON ADVERSAIRE A QUITTE LA PARTIE
-        console.log("partie quitee");
+        
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket;
+        })
+        
+        if(salonFound != undefined){
+            if(salonFound.socket2 == undefined){
+                rooms.splice(rooms.findIndex(function(element){
+                    return element.socket1 == socket;
+                }), 1);
+                console.log("partie terminee")
+            }
+            else{
+                salonFound.socket1 = undefined;
+                salonFound.socket2.emit('player_left');
+                console.log("partie quittee");
+            }
+        }
+        else if{
+            salonFound = rooms.find(function(element){
+                return element.socket2 == socket;
+            })
+            if(salonFound != undefined){
+                if(salonFound.socket1 == undefined){
+                    rooms.splice(rooms.findIndex(function(element){
+                        return element.socket2 == socket;
+                    }), 1);
+                    console.log("partie terminee");
+                }
+                else{
+                    salonFound.socket2 = undefined;
+                    salonFound.socket1.emit('player_left');
+                    console.log('partie quittee')
+                }
+            }
+        }
+        else{
+            console.log("player not found");
+        }
     })
     
     //DISCONNECT-------------------------------
