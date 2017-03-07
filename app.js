@@ -211,7 +211,7 @@ io.on('connection', function (socket) {
                 console.log("partie quittee");
             }
         }
-        else if{
+        else{
             salonFound = rooms.find(function(element){
                 return element.socket2 == socket;
             })
@@ -228,9 +228,9 @@ io.on('connection', function (socket) {
                     console.log('partie quittee')
                 }
             }
-        }
-        else{
-            console.log("player not found");
+            else{
+                console.log("player not found");
+            }
         }
     })
     
