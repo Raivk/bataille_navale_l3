@@ -31,13 +31,14 @@ function demarrer_mmr(){
         //OUVERTURE D'UN SALON
         salon = true;
         switch_page("rech","attente");
+        socket.removeListener("not_found");
     });
     
     socket.on('found', function(){
         switch_page("mmr_search", "ready");
         menu_pret();
-        //FAIRE QUELQUE CHOSE ?
-        //PARTIE TROUVEE
+        socket.removeListener("not_found");
+        socket.removeListener("found");
     });
 }
 
@@ -59,7 +60,9 @@ function demarrer_salon(){
         socket.on('found_rival', function(){
             switch_page("private_room_waiting","ready");
             menu_pret();
+            socket.removeListener("found_rival");
         });
+        socket.removeListener('key_code');
     });
 }
 
@@ -78,6 +81,7 @@ function rejoindre_prive(){
         else{
             console.log("clée invalide");
         }
+        socket.removeListener("key_response");
     });
 }
 
@@ -86,11 +90,13 @@ function rejoindre_prive(){
 function menu_pret(){
     socket.on("other_ready",function(){
         console.log("l'autre est prêt");
+        socket.removeListener("other_ready");
     });
     socket.on("other_cancel",function(){
         console.log("l'autre annule la partie au menu pret");
         switch_page("ready","home");
-    })
+        socket.removeListener("other_cancel");
+    });
 }
 
 function annuler_pret(){
@@ -105,7 +111,9 @@ function declarer_pret(){
     //ATTENDRE LA REPONSE DU SERVEUR, si l'autre est pret, go en jeu
     socket.on("go_party",function(){
         switch_page("ready","ingame");
-        createGrid();
+        start_game();
+        console.log("machin");
+        socket.removeListener("go_party");
     });
 }
 
@@ -113,11 +121,17 @@ function declarer_pret(){
 
 function start_game(){
     createGrid();
+    socket.on("player_left", function(){
+        console.log("other player left the game")
+        quitter_partie();
+        socket.removeListener("player_left");
+    });
 }
 
 function quitter_partie(){
     socket.emit("quit_game");
     switch_page("ingame","home");
+    reset();
 }
 
 var taille = 10;
@@ -127,6 +141,7 @@ var elem;
 var div;
 
 function createGrid() {
+    console.log("yolo");
 	var gridDivj = document.querySelectorAll('.grid-j');
 	var gridDivb = document.querySelectorAll('.grid-b');
 	for (var grid = 0; grid < gridDivj.length; grid++) {
@@ -293,7 +308,7 @@ function jouer(){
     } else {
         supprimg();
         initlistener();
-        var gridDiv = document.querySelectorAll('.grid-cell');
+        //var gridDiv = document.querySelectorAll('.grid-cell');
     }
 }
 
@@ -323,4 +338,13 @@ function supprimg() {
         gridDiv[grid].removeEventListener('mouseout', placementMouseout, false);
         gridDiv[grid].setAttribute('vide', true);
 	}
+}
+
+function reset() {
+    console.log("swag");
+    var gridDiv = document.querySelectorAll('.grid-cell');
+    console.log(gridDiv);
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        gridDiv[grid].remove();
+    }
 }
