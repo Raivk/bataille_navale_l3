@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Naval Battle</title>
+    <title>Bataille Navale</title>
     <link rel="stylesheet" type="text/css" href="css/pure-min.css"/>
     <link rel="stylesheet" type="text/css" href="css/index.css"/>
     <script src="socket.io/socket.io.js"></script>
@@ -11,10 +11,14 @@
 <body>
     
     <div id="home">
-        <nav>
-            <button class="pure-button" onclick="rejoindre_prive()">Rejoindre une salle</button>
-            <button class="pure-button" onclick="demarrer_salon()">Créer une salle</button>
-            <button class="pure-button" onclick="demarrer_mmr()">Recherche de match</button>
+        <nav class = "pure-g">
+            <h1 class = "pure-u-1-1 center_title">Bataille <span class="center_titleFont2">Navale</span></h1>
+            <button class="pure-button pure-button-primary big_bt pure-u-1-3" onclick="rejoindre_prive()">Rejoindre une salle</button>
+            <button class="pure-button pure-button-primary big_bt pure-u-1-3" onclick="demarrer_salon()">Créer une salle</button>
+            <button class="pure-button pure-button-primary big_bt pure-u-1-3" onclick="demarrer_mmr()">Recherche de match</button>
+            <form class="pure-form pure-u-1-3">
+                <input type="text" class = "pure-input-1 pure-input-rounded big_field"  placeholder = "Clé de la salle..."/>
+            </form>
         </nav>
     </div>
     
@@ -58,7 +62,6 @@
             <img class="boat" src="assets/carre_noir.jpg" id="sous-marin" height="126" width="42" draggable="true" taille="3" pos="v">
             <img class="boat" src="assets/carre_noir.jpg" id="torpilleur" height="84" width="42" draggable="true" taille="2" pos="v">
         </div>
-        <script type="text/javascript" src="script.js"></script>
         <br>
         <input id="jouer" type="button" value="Jouer" onclick="jouer()">
     </div>

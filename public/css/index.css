@@ -1,3 +1,19 @@
+@font-face {
+    font-family: "slabo";
+    src: url("fonts/Slabo_27px/Slabo27px-Regular.ttf");
+}
+
+@font-face {
+    font-family: "roboto";
+    src: url("fonts/Roboto/Roboto-Regular.ttf");
+}
+
+@font-face {
+    font-family: "robotothin";
+    src: url("fonts/Roboto/Roboto-Thin.ttf");
+}
+
+
 canvas {
     border: 1px solid black;
 }
@@ -40,4 +56,33 @@ img {
 
 .hide_by_default{
     display: none;
+}
+
+* {
+    font-family: "roboto" !important;
+}
+
+.center_title{
+    margin-top: 50vh; /* poussé de la moitié de hauteur de viewport */
+    transform: translateY(-50%); 
+    font-size: 700%;
+    text-align: center;
+    font-family: "robotothin" !important;
+}
+
+.big_bt{
+    font-family: "roboto" !important;
+    font-size: 170%;
+}
+
+.big_field{
+    font-family: "robotothin" !important;
+    font-size: 170%;
+    text-align: center;
+    margin-top:10px;
+}
+
+.center_titleFont2{
+    color:dodgerblue;
+    font-family: "slabo" !important;
 }
