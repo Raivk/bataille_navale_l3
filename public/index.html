@@ -3,10 +3,12 @@
     <title>Bataille Navale</title>
     <link rel="stylesheet" type="text/css" href="css/pure-min.css"/>
     <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="css/grids-responsive-min.css"/>
     <script src="socket.io/socket.io.js"></script>
     <script src="/lib/jquery-3.1.1.min.js"></script>
     <script src="/lib/require.js"></script>
     <script src="src/game.js"></script>
+    
 </head>
 <body>
     
@@ -27,43 +29,51 @@
         <button class="pure-button quit_bt" onclick="annuler_recherche()">Annuler la recherche</button>
         <h1 id="rech" class="center_title">Recherche de match...</h1>
         <h1 id="attente" class="hide_by_default center_title">Attente d'adversaire...</h1>
+        <!--<div class="progress-line"></div>-->
     </div>
     
     
     <div id="private_room_waiting" class="hide_by_default">
         <button class="pure-button quit_bt" onclick="annuler_salon_prive()">Quitter le salon</button>
-        <h1 class="center_title">En attente d'adversaire</h1>
-        <h2 class="center_titleFont2">Clé privée : <span id="key"></span></h2>
+        <h1 class="center_title">Attente d'adversaire...</h1>
+        <!--<div class="progress-line"></div>-->
+        <h2 class="priv_key_display">Clé privée : <span id="key"></span></h2>
     </div>
     
     
     <div id="ready" class="hide_by_default">
         <button class="pure-button quit_bt" onclick="annuler_pret()">Annuler la partie</button>
         <h1 class="center_title">Êtes-vous prêt ?</h1>
-        <div id="you">
-            <h2>Vous :</h2>
-            <button class="pure-button" id="ready_bt" onclick="declarer_pret()">Je suis prêt !</button>
-        </div>
-        <div id="other_player">
-            <h2>Adversaire :</h2>
-            <h2 id="other_ready_text">Attente de confirmation...</h2>
+        <div class="pure-g">
+            <button class="pure-button pure-button-primary pure-u-1-1" id="ready_bt" onclick="declarer_pret()">Je suis prêt !</button>
+            <h2 id="other_ready_text" class="pure-u-1-1">Adversaire pas encore prêt...</h2>
         </div>
     </div>
     
     
     <div id="ingame" class="hide_by_default">
-        <button class="pure-button" onclick="quitter_partie()">Quitter la partie</button>
-        <div class="grid-j"></div>
-        <div class="grid-b"></div>
-        <div class="imgboat">
-            <img  class="boat" src="assets/carre_noir.jpg" id="porte-avion" height="210" width="42" draggable="true" taille="5" pos="h">
-            <img class="boat" src="assets/carre_noir.jpg" id="croiseur" height="168" width="42" draggable="true" taille="4" pos="h">
-            <img class="boat" src="assets/carre_noir.jpg" id="contre-torpilleur" height="126" width="42" draggable="true" taille="3" pos="v">
-            <img class="boat" src="assets/carre_noir.jpg" id="sous-marin" height="126" width="42" draggable="true" taille="3" pos="v">
-            <img class="boat" src="assets/carre_noir.jpg" id="torpilleur" height="84" width="42" draggable="true" taille="2" pos="v">
+        <button class="pure-button quit_bt" onclick="quitter_partie()">Quitter la partie</button>
+        <div class="pure-g game_grids">
+            <div class="pure-g pure-u-1-1 pure-u-md-1-2 one_grid">
+                <h2 class="pure-u-1-1 grid_title">Vous</h2>
+                <div class="grid-j pure-u-1-1"></div>
+            </div>
+            <div class="pure-g pure-u-1-1 pure-u-sm-1-2 one_grid">
+                <h2 class="pure-u-1-1 grid_title">Adversaire</h2>
+                <div class="grid-b pure-u-1-1"></div>
+            </div>
         </div>
-        <br>
-        <input id="jouer" type="button" value="Jouer" onclick="jouer()">
+        <div class="pure-g boats">
+            <h2 class="pure-u-1-1 grid_title">Placez vos bateaux</h2>
+            <div class="imgboat pure-u-1-1">
+                <img  class="boat" src="assets/carre_noir.jpg" id="porte-avion" height="210" width="42" draggable="true" taille="5" pos="h">
+                <img class="boat" src="assets/carre_noir.jpg" id="croiseur" height="168" width="42" draggable="true" taille="4" pos="h">
+                <img class="boat" src="assets/carre_noir.jpg" id="contre-torpilleur" height="126" width="42" draggable="true" taille="3" pos="v">
+                <img class="boat" src="assets/carre_noir.jpg" id="sous-marin" height="126" width="42" draggable="true" taille="3" pos="v">
+                <img class="boat" src="assets/carre_noir.jpg" id="torpilleur" height="84" width="42" draggable="true" taille="2" pos="v">
+            </div>
+            <button id="jouer" class="pure-button pure-button-primary pure-u-1-1 boat_bt" onclick="jouer()">Confirmer les emplacements</button>
+        </div>
     </div>
     
     

@@ -93,9 +93,8 @@ function menu_pret(){
         socket.removeListener("other_ready");
     });
     socket.on("other_cancel",function(){
-        console.log("l'autre annule la partie au menu pret");
         document.getElementById("ready_bt").disabled = false;
-        document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
+        document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
         switch_page("ready","home");
         socket.removeListener("other_cancel");
     });
@@ -103,7 +102,7 @@ function menu_pret(){
 
 function annuler_pret(){
     document.getElementById("ready_bt").disabled = false;
-    document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
+    document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
     socket.emit("cancel_ready");
     socket.removeListener("other_ready");
     socket.removeListener("other_cancel");
@@ -118,10 +117,9 @@ function declarer_pret(){
     //ATTENDRE LA REPONSE DU SERVEUR, si l'autre est pret, go en jeu
     socket.on("go_party",function(){
         document.getElementById("ready_bt").disabled = false;
-        document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
+        document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
         switch_page("ready","ingame");
         start_game();
-        console.log("machin");
         socket.removeListener("go_party");
     });
 }
@@ -150,7 +148,6 @@ var elem;
 var div;
 
 function createGrid() {
-    console.log("yolo");
 	var gridDivj = document.querySelectorAll('.grid-j');
 	var gridDivb = document.querySelectorAll('.grid-b');
 	for (var grid = 0; grid < gridDivj.length; grid++) {

@@ -50,8 +50,8 @@ canvas {
 	border-radius: 5px;
 }
 
-img {
-    margin-right: 10px;
+.boat {
+    margin:auto;
 }
 
 .hide_by_default{
@@ -68,6 +68,14 @@ img {
     font-size: 700%;
     text-align: center;
     font-family: "robotothin" !important;
+}
+
+.priv_key_display{
+    margin-top: 10px;
+    font-size: 170%;
+    text-align: center;
+    color:dodgerblue;
+    font-family: "slabo" !important;
 }
 
 .big_bt{
@@ -94,4 +102,86 @@ img {
     text-align: center;
     background-color: crimson;
     color:white;
+}
+
+#ready_bt{
+    text-align:center;
+    font-size: 200%;
+}
+
+#other_ready_text{
+    margin-top: 20px;
+    font-size: 200%;
+    text-align: center;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.game_grids{
+    width:100%;
+    flex: 1;
+}
+
+.boats{
+    background-color: white;
+    width:100%;
+    position: fixed;
+    bottom: 0;
+    width:100%;
+}
+
+.grid_title{
+    text-align: center;
+}
+
+.one_grid{
+    margin:auto;
+    display: flex !important;
+    justify-content: center;
+    align-items:center;
+}
+
+.imgboat{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.boat_bt{
+    font-size: 200%;
+}
+
+.progress-line, .progress-line:before {
+  height: 3px;
+  width: 100%;
+  margin: 0;
+}
+.progress-line {
+  background-color: #b3d4fc;
+  display: -webkit-flex;
+  display: flex;
+}
+.progress-line:before {
+  background-color: #3f51b5;
+  content: '';
+  -webkit-animation: running-progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: running-progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@-webkit-keyframes running-progress {
+  0% { margin-left: 0px; margin-right: 100%; }
+  50% { margin-left: 25%; margin-right: 0%; }
+  100% { margin-left: 100%; margin-right: 0; }
+}
+@keyframes running-progress {
+  0% { margin-left: 0px; margin-right: 100%; }
+  50% { margin-left: 25%; margin-right: 0%; }
+  100% { margin-left: 100%; margin-right: 0; }
 }
