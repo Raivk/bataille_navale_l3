@@ -86,3 +86,12 @@ img {
     color:dodgerblue;
     font-family: "slabo" !important;
 }
+
+.quit_bt{
+    font-family: "roboto" !important;
+    font-size: 170%;
+    width:100%;
+    text-align: center;
+    background-color: crimson;
+    color:white;
+}

@@ -71,7 +71,7 @@ function demarrer_salon(){
 
 function rejoindre_prive(){
     //RECUPERER LES DONNEES DU CHAMPS DE CLE
-    socket.emit("private_search", {'sal_key' : 'TCxtRk12bADBxRMsNhiQS'});
+    socket.emit("private_search", {'sal_key' : document.getElementById("room_key_input").value});
     socket.on("key_response", function(data){
         if(data.found){
             //PARTIE TROUVEE, FAIRE QUELQUE CHOSE
@@ -79,7 +79,7 @@ function rejoindre_prive(){
             menu_pret();
         }
         else{
-            console.log("clée invalide");
+            document.getElementById("room_key_input").value = "Clé invalide !";
         }
         socket.removeListener("key_response");
     });
@@ -89,27 +89,36 @@ function rejoindre_prive(){
 
 function menu_pret(){
     socket.on("other_ready",function(){
-        console.log("l'autre est prêt");
+        document.getElementById("other_ready_text").innerHTML = "Prêt !";
         socket.removeListener("other_ready");
     });
     socket.on("other_cancel",function(){
         console.log("l'autre annule la partie au menu pret");
+        document.getElementById("ready_bt").disabled = false;
+        document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
         switch_page("ready","home");
         socket.removeListener("other_cancel");
     });
 }
 
 function annuler_pret(){
+    document.getElementById("ready_bt").disabled = false;
+    document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
     socket.emit("cancel_ready");
+    socket.removeListener("other_ready");
+    socket.removeListener("other_cancel");
+    socket.removeListener("go_party");
     switch_page("ready","home");
 }
 
 function declarer_pret(){
-    console.log("PRET !");
+    document.getElementById("ready_bt").disabled = true;
     //AFFICHER QUELQUE CHOSE A L'ECRAN DU JOUEUR
     socket.emit("ready");
     //ATTENDRE LA REPONSE DU SERVEUR, si l'autre est pret, go en jeu
     socket.on("go_party",function(){
+        document.getElementById("ready_bt").disabled = false;
+        document.getElementById("other_ready_text").innerHTML = "Attente de confirmation...";
         switch_page("ready","ingame");
         start_game();
         console.log("machin");

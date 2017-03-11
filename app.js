@@ -141,10 +141,14 @@ io.on('connection', function (socket) {
             salonFound = rooms.find(function(element){
                 return element.socket2 == socket;
             })
-            if(salonFound != undefined){salonFound.ready2 = true;}
+            if(salonFound != undefined){
+                salonFound.ready2 = true;
+                salonFound.socket1.emit("other_ready");
+            }
         }
         else{
             salonFound.ready1 = true;
+                salonFound.socket2.emit("other_ready");
         }
         
         
