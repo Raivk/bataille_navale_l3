@@ -88,6 +88,16 @@ function rejoindre_prive(){
 //READY-------------------------------------
 
 function menu_pret(){
+    socket.on("player_left", function(){
+        console.log("other player left the game");
+        
+        switch_page("ready","home");
+        document.getElementById("ready_bt").disabled = false;
+        document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
+        socket.removeListener("other_cancel");
+        socket.removeListener("other_ready");
+        socket.removeListener("player_left");
+    });
     socket.on("other_ready",function(){
         document.getElementById("other_ready_text").innerHTML = "Prêt !";
         socket.removeListener("other_ready");
@@ -129,9 +139,13 @@ function declarer_pret(){
 function start_game(){
     createGrid();
     socket.on("player_left", function(){
-        console.log("other player left the game")
+        console.log("other player left the game");
         quitter_partie();
         socket.removeListener("player_left");
+    });
+    socket.on("boat_placed", function(){
+        console.log("oponen boat placed");
+        socket.removeListener("boat_placed");
     });
 }
 
@@ -321,6 +335,7 @@ function jouer(){
     } else {
         supprimg();
         initlistener();
+        socket.emit("boat_placed");
     }
 }
 
