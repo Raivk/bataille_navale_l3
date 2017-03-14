@@ -252,13 +252,27 @@ io.on('connection', function (socket) {
                 return element.socket2 == socket;
             })
             if(salonFound != undefined){
-                salonFound.socket2 = undefined;
-                salonFound.socket1.emit("player_left");
+                if(salonFound.socket1 != undefined){
+                    salonFound.socket2 = undefined;
+                    salonFound.socket1.emit("player_left");
+                }
+                else{
+                    rooms.splice(rooms.findIndex(function(element){
+                        return element.socket2 == socket;
+                    }), 1);
+                }
             }
         }
         else{
-            salonFound.socket1 = undefined;
-            salonFound.socket2.emit("player_left");
+            if(salonFound.socket2 != undefined){
+                salonFound.socket1 = undefined;
+                salonFound.socket2.emit("player_left");
+            }
+            else{
+                rooms.splice(rooms.findIndex(function(element){
+                        return element.socket1 == socket;
+                    }), 1);
+            }
         }
     });
 });
