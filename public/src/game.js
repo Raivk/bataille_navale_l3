@@ -88,6 +88,16 @@ function rejoindre_prive(){
 //READY-------------------------------------
 
 function menu_pret(){
+    socket.on("player_left", function(){
+        console.log("other player left the game");
+        
+        switch_page("ready","home");
+        document.getElementById("ready_bt").disabled = false;
+        document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
+        socket.removeListener("other_cancel");
+        socket.removeListener("other_ready");
+        socket.removeListener("player_left");
+    });
     socket.on("other_ready",function(){
         document.getElementById("other_ready_text").innerHTML = "Prêt !";
         socket.removeListener("other_ready");
@@ -129,9 +139,13 @@ function declarer_pret(){
 function start_game(){
     createGrid();
     socket.on("player_left", function(){
-        console.log("other player left the game")
+        console.log("other player left the game");
         quitter_partie();
         socket.removeListener("player_left");
+    });
+    socket.on("boat_placed", function(){
+        console.log("oponen boat placed");
+        socket.removeListener("boat_placed");
     });
 }
 
@@ -209,7 +223,7 @@ function selection(j){
 function eventclic(j){
     if (isdrag) {
         verouiller(j);
-        elem.target.remove();
+        elem.target.classList.add("hide_by_default"); 
         elem = null;
         isdrag = false;
     }
@@ -309,12 +323,19 @@ document.onkeydown = function (e) {
 
 
 function jouer(){
-    if (document.querySelectorAll('.boat').length != 0) {
+    var bool = true;
+    var img = document.getElementsByClassName("boat");
+    for (var el = 0; el < img.length; el++) {
+        if (!img[el].classList.contains("hide_by_default")) {
+            bool = false;
+        }
+    }
+    if(bool == false) {
         alert("tous les bateau ne sont pas placés");
     } else {
         supprimg();
         initlistener();
-        //var gridDiv = document.querySelectorAll('.grid-cell');
+        socket.emit("boat_placed");
     }
 }
 
@@ -335,7 +356,7 @@ function initlistener() {
 }
 
 function supprimg() {
-    document.querySelector('#jouer').remove();
+    document.querySelector('.boats').classList.add("hide_by_default");
     elem = null;
     var gridDiv = document.querySelectorAll('.player');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
@@ -347,10 +368,13 @@ function supprimg() {
 }
 
 function reset() {
-    console.log("swag");
     var gridDiv = document.querySelectorAll('.grid-cell');
-    console.log(gridDiv);
     for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].remove();
+    }
+    document.getElementsByClassName("boats")[0].classList.remove("hide_by_default");
+    var img = document.getElementsByClassName("boat");
+    for (var el = 0; el < img.length; el++) {
+        img[el].classList.remove("hide_by_default");
     }
 }
