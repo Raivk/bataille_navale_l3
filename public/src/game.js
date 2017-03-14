@@ -209,7 +209,7 @@ function selection(j){
 function eventclic(j){
     if (isdrag) {
         verouiller(j);
-        elem.target.remove();
+        elem.target.classList.add("hide_by_default"); 
         elem = null;
         isdrag = false;
     }
@@ -309,12 +309,18 @@ document.onkeydown = function (e) {
 
 
 function jouer(){
-    if (document.querySelectorAll('.boat').length != 0) {
+    var bool = true;
+    var img = document.getElementsByClassName("boat");
+    for (var el = 0; el < img.length; el++) {
+        if (!img[el].classList.contains("hide_by_default")) {
+            bool = false;
+        }
+    }
+    if(bool == false) {
         alert("tous les bateau ne sont pas placés");
     } else {
         supprimg();
         initlistener();
-        //var gridDiv = document.querySelectorAll('.grid-cell');
     }
 }
 
@@ -335,7 +341,7 @@ function initlistener() {
 }
 
 function supprimg() {
-    document.querySelector('#jouer').remove();
+    document.querySelector('.boats').classList.add("hide_by_default");
     elem = null;
     var gridDiv = document.querySelectorAll('.player');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
@@ -347,10 +353,13 @@ function supprimg() {
 }
 
 function reset() {
-    console.log("swag");
     var gridDiv = document.querySelectorAll('.grid-cell');
-    console.log(gridDiv);
     for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].remove();
+    }
+    document.getElementsByClassName("boats")[0].classList.remove("hide_by_default");
+    var img = document.getElementsByClassName("boat");
+    for (var el = 0; el < img.length; el++) {
+        img[el].classList.remove("hide_by_default");
     }
 }
