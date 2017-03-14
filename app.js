@@ -240,7 +240,26 @@ io.on('connection', function (socket) {
     
     //DISCONNECT-------------------------------
     socket.on('disconnect', function(){
-        console.log("Disconnect");
+        
+        console.log("disconnected");
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket;
+        })
+        
+        
+        if(salonFound == undefined){
+            salonFound = rooms.find(function(element){
+                return element.socket2 == socket;
+            })
+            if(salonFound != undefined){
+                salonFound.socket2 = undefined;
+                salonFound.socket1.emit("player_left");
+            }
+        }
+        else{
+            salonFound.socket1 = undefined;
+            salonFound.socket2.emit("player_left");
+        }
     });
 });
 
