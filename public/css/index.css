@@ -102,6 +102,17 @@ canvas {
     text-align: center;
     background-color: crimson;
     color:white;
+    position: fixed;
+    top:0px;
+}
+
+.quit_bt_ig{
+    font-family: "roboto" !important;
+    font-size: 170%;
+    width:100%;
+    text-align: center;
+    background-color: crimson;
+    color:white;
 }
 
 #ready_bt{
@@ -136,6 +147,7 @@ body {
     position: fixed;
     bottom: 0;
     width:100%;
+    border-top: solid 1px black;
 }
 
 .grid_title{
@@ -157,6 +169,17 @@ body {
 
 .boat_bt{
     font-size: 200%;
+}
+
+.close_bt {
+    margin-left:auto;
+}
+
+#show_bt {
+    position: fixed;
+    font-size: 170%;
+    bottom: 0px;
+    width: 100%;
 }
 
 .progress-line, .progress-line:before {

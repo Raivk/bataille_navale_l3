@@ -136,6 +136,17 @@ function declarer_pret(){
 
 //INGAME-------------------------------------
 
+function hide_boat_placement(){
+    console.log("oui");
+    document.getElementsByClassName("boats")[0].classList.add("hide_by_default");
+    document.getElementById("show_bt").classList.remove("hide_by_default");
+}
+
+function show_boat_placement(){
+    document.getElementsByClassName("boats")[0].classList.remove("hide_by_default");
+    document.getElementById("show_bt").classList.add("hide_by_default");
+}
+
 function start_game(){
     createGrid();
     socket.on("player_left", function(){
@@ -150,6 +161,7 @@ function start_game(){
 }
 
 function quitter_partie(){
+    document.getElementById("show_bt").classList.add("hide_by_default");
     socket.emit("quit_game");
     switch_page("ingame","home");
     reset();
@@ -356,6 +368,7 @@ function initlistener() {
 }
 
 function supprimg() {
+    document.getElementById("show_bt").classList.add("hide_by_default");
     document.querySelector('.boats').classList.add("hide_by_default");
     elem = null;
     var gridDiv = document.querySelectorAll('.player');

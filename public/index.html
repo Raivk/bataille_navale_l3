@@ -52,7 +52,7 @@
     
     
     <div id="ingame" class="hide_by_default">
-        <button class="pure-button quit_bt" onclick="quitter_partie()">Quitter la partie</button>
+        <button class="pure-button quit_bt_ig" onclick="quitter_partie()">Quitter la partie</button>
         <div class="pure-g game_grids">
             <div class="pure-g pure-u-1-1 pure-u-md-1-2 one_grid">
                 <h2 class="pure-u-1-1 grid_title">Vous</h2>
@@ -64,6 +64,7 @@
             </div>
         </div>
         <div class="pure-g boats">
+            <button class="pure-button pure-button-primary close_bt" onclick="hide_boat_placement()">-</button>
             <h2 class="pure-u-1-1 grid_title">Placez vos bateaux</h2>
             <div class="imgboat pure-u-1-1">
                 <img  class="boat" src="assets/carre_noir.jpg" id="porte-avion" height="210" width="42" draggable="true" taille="5" pos="h">
@@ -74,6 +75,7 @@
             </div>
             <button id="jouer" class="pure-button pure-button-primary pure-u-1-1 boat_bt" onclick="jouer()">Confirmer les emplacements</button>
         </div>
+        <button id="show_bt" class="pure-button pure-button-primary hide_by_default" onclick="show_boat_placement()">Montrer les bateaux</button>
     </div>
     
     
