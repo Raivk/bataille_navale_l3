@@ -17,6 +17,10 @@ app.get('/', function(req, res){
   res.render('/index.html');
 });
 
+app.get('/solo', function(req, res){
+    res.sendFile(__dirname + '/public/solo.html');
+});
+
 //Code executed on each new connection
 io.on('connection', function (socket) {
     console.log("Connection");

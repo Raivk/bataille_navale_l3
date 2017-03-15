@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>Bataille Navale</title>
+    <link rel="stylesheet" type="text/css" href="css/pure-min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="css/grids-responsive-min.css"/>
+    <script src="/lib/jquery-3.1.1.min.js"></script>
+    <script src="/lib/require.js"></script>
+    <script src="src/solo.js"></script>
+    
+</head>
+<body>
+    
+    <div id="ingame">
+        <a class="pure-button quit_bt_ig" href="/">Quitter la partie</a>
+        <div class="pure-g game_grids">
+            <div class="pure-g pure-u-1-1 pure-u-md-1-2 one_grid">
+                <h2 class="pure-u-1-1 grid_title">Vous</h2>
+                <div class="grid-j pure-u-1-1"></div>
+            </div>
+            <div class="pure-g pure-u-1-1 pure-u-sm-1-2 one_grid">
+                <h2 class="pure-u-1-1 grid_title">Adversaire</h2>
+                <div class="grid-b pure-u-1-1"></div>
+            </div>
+        </div>
+        <div class="pure-g boats">
+            <button class="pure-button pure-button-primary close_bt" onclick="hide_boat_placement()">-</button>
+            <h2 class="pure-u-1-1 grid_title">Placez vos bateaux</h2>
+            <div class="imgboat pure-u-1-1">
+                <img  class="boat" src="assets/carre_noir.jpg" id="porte-avion" height="210" width="42" draggable="true" taille="5" pos="h">
+                <img class="boat" src="assets/carre_noir.jpg" id="croiseur" height="168" width="42" draggable="true" taille="4" pos="h">
+                <img class="boat" src="assets/carre_noir.jpg" id="contre-torpilleur" height="126" width="42" draggable="true" taille="3" pos="v">
+                <img class="boat" src="assets/carre_noir.jpg" id="sous-marin" height="126" width="42" draggable="true" taille="3" pos="v">
+                <img class="boat" src="assets/carre_noir.jpg" id="torpilleur" height="84" width="42" draggable="true" taille="2" pos="v">
+            </div>
+            <button id="jouer" class="pure-button pure-button-primary pure-u-1-1 boat_bt" onclick="jouer()">Confirmer les emplacements</button>
+        </div>
+        <button id="show_bt" class="pure-button pure-button-primary hide_by_default" onclick="show_boat_placement()">Montrer les bateaux</button>
+    </div>
+    
+    
+</body>
+</html>
