@@ -250,3 +250,5 @@ function reset() {
         img[el].classList.remove("hide_by_default");
     }
 }
+
+start_game();
