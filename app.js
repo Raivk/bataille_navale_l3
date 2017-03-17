@@ -25,6 +25,13 @@ app.get('/solo', function(req, res){
 io.on('connection', function (socket) {
     console.log("Connection");
     
+    function findSalon(socket){
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket || element.socket2 == socket;
+        });
+        return salonFound;
+    }
+    
     //MMR-------------------------------
     
     socket.on('mmr_search', function(){
@@ -199,6 +206,45 @@ io.on('connection', function (socket) {
     
     //INGAME-------------------------------
     
+    socket.on("boat_placed", function(){
+        
+        salonFound = rooms.find(function(element){
+            return element.socket1 == socket;
+        })
+        
+        if(salonFound == undefined){
+            salonFound = rooms.find(function(element){
+                return element.socket2 == socket;
+            })
+            if(salonFound != undefined){
+                if(salonFound.boatOK != undefined){
+                    //Faire lancer piece pour voir qui commence
+                    //Envoyer le jouerOK au gagnant
+                    //Envoyer le attendre au perdant
+                }
+                else{
+                    salonFound.boatOK = true;
+                    salonFound.socket1.emit("boat_placed");
+                }
+            }
+            else{
+                console.log("room not found");
+            }
+        }
+        else{
+            
+            if(salonFound.boatOK != undefined){
+                //Faire lancer piece pour voir qui commence
+                //Envoyer le jouerOK au gagnant
+                //Envoyer le attendre au perdant
+            }
+            else{
+                salonFound.boatOK = true;
+                salonFound.socket2.emit("boat_placed");
+            }
+        }
+    });
+    
     socket.on("quit_game",function(){
         //PREVENIR L'AUTRE QUE SON ADVERSAIRE A QUITTE LA PARTIE
         
@@ -240,7 +286,60 @@ io.on('connection', function (socket) {
                 console.log("player not found");
             }
         }
-    })
+    });
+    
+    socket.on("player_attack",function(data){
+        salonFound = findSalon(socket);
+        
+        if(salonFound == undefined){
+            console.log("room not found");
+        }
+        else{
+            if(salonFound.socket1 == socket){
+                salonFound.socket2.emit("act_attacked",data);
+                salonFound.socket2.on("waiting_status",function(data2){
+                    socket.emit("result_attack",data2);
+                    salonFound.socket2.removeListener("waiting_status");
+                });
+                
+            }
+            else{
+                salonFound.socket1.emit("act_attacked",data);
+                salonFound.socket1.on("waiting_status",function(data2){
+                    socket.emit("result_attack",data2);
+                    salonFound.socket1.removeListener("waiting_status");
+                });
+                
+            }
+        }
+    });
+    
+    socket.on("relancer_ask", function(){
+        salonFound = findSalon(socket);
+        
+        if(salonFound == undefined){
+            console.log("room not found");
+        }
+        else{
+            if(salonFound.relancerAsk == true){
+                salonFound.socket1.emit("relancer_game");
+                salonFound.socket2.emit("relancer_game");
+            }
+            else{
+                salonFound.relancerAsk = true;
+                if(salonFound.socket1 == socket){
+                    salonFound.socket2.emit("notif_relancer");
+                }
+                else{
+                    salonFound.socket1.emit("notif_relancer");
+                }
+            }
+        }
+    });
+    
+    socket.on("relaunch", function(){
+        
+    });
     
     //DISCONNECT-------------------------------
     socket.on('disconnect', function(){
