@@ -168,7 +168,7 @@ function quitter_partie(){
 
 var taille = 10;
 var isdrag = false; //si un element est selectionner pour drag.
-var valide = false; //rien pour le moment.
+var valide = false; //si le bateau peut etre placé a la case.
 var elem;
 var div;
 
@@ -232,7 +232,7 @@ function selection(j){
 }
                                 
 function eventclic(j){
-    if (isdrag) {
+    if (isdrag && valide) {
         verouiller(j);
         elem.target.classList.add("hide_by_default"); 
         elem = null;
@@ -265,6 +265,7 @@ function listecase(j) {
     var tailleboat = elem.target.getAttribute('taille');
     var liste = [];
     lui = j.target;
+    valide = true;
     if (elem.target.getAttribute('pos') == 'h' 
     && ((-1 <= lui.getAttribute('data-y')-tailleboat/2)
     && (lui.getAttribute('data-y') < taille) 
@@ -281,6 +282,9 @@ function listecase(j) {
         for (var i = 0; i < tailleboat; i++) {
             liste[i] = point(j, tailleboat/2 - i, 0);
         }
+    }
+    if (liste.length==0) {
+        valide = false;
     }
     return liste;
 }
