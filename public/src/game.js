@@ -6,11 +6,52 @@ var socket = io.connect('localhost:8080');
 
 var salon = false;
 
+toastr.options = {
+  "closeButton": false,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": true,
+  "positionClass": "toast-top-full-width",
+  "preventDuplicates": false,
+  "onclick": null,
+  "showDuration": "300",
+  "hideDuration": "1000",
+  "timeOut": "5000",
+  "extendedTimeOut": "1000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+};
+
+//TOATSR : how to use :------------------------
+/*
+//INFO TOAST
+toastr.info("title","message");
+
+// Display a warning toast, with no title
+toastr.warning('My name is Inigo Montoya. You killed my father, prepare to die!');
+
+// Display a success toast, with a title
+toastr.success('Have fun storming the castle!', 'Miracle Max Says');
+
+// Display an error toast, with a title
+toastr.error('I do not think that word means what you think it means.', 'Inconceivable!');
+
+// Immediately remove current toasts without using animation
+toastr.remove();
+
+// Remove current toasts using animation
+toastr.clear();
+*/
+//END TOASTR TUTO------------------------------
+
 //OUTILS-------------------------------------
 
 function switch_page(tohide, togo){
     document.getElementById(tohide).style.display = "none";
     document.getElementById(togo).style.display = "block";
+    toastr.clear();
 }
 
 //MMR-------------------------------------
@@ -79,7 +120,8 @@ function rejoindre_prive(){
             menu_pret();
         }
         else{
-            document.getElementById("room_key_input").value = "Clé invalide !";
+            document.getElementById("room_key_input").value = "";
+            toastr.error("Clé invalide !","Impossible de rejoindre une partie avec cette clé");
         }
         socket.removeListener("key_response");
     });
@@ -99,7 +141,7 @@ function menu_pret(){
         socket.removeListener("player_left");
     });
     socket.on("other_ready",function(){
-        document.getElementById("other_ready_text").innerHTML = "Prêt !";
+        document.getElementById("other_ready_text").innerHTML = "Adversaire prêt !";
         socket.removeListener("other_ready");
     });
     socket.on("other_cancel",function(){
@@ -107,6 +149,7 @@ function menu_pret(){
         document.getElementById("other_ready_text").innerHTML = "Adversaire pas encore prêt...";
         switch_page("ready","home");
         socket.removeListener("other_cancel");
+        toastr.info("L'adversaire a quitté la partie...");
     });
 }
 
@@ -149,12 +192,12 @@ function show_boat_placement(){
 function start_game(){
     createGrid();
     socket.on("player_left", function(){
-        console.log("other player left the game");
         quitter_partie();
         socket.removeListener("player_left");
+        toastr.info("L'adversaire a quitté la partie...");
     });
     socket.on("boat_placed", function(){
-        console.log("oponen boat placed");
+        toastr.info("L'adversaire a placé ses bateaux !");
         socket.removeListener("boat_placed");
     });
 }
@@ -162,6 +205,8 @@ function start_game(){
 function quitter_partie(){
     document.getElementById("show_bt").classList.add("hide_by_default");
     socket.emit("quit_game");
+    socket.removeListener("player_left");
+    socket.removeListener("boat_placed");
     switch_page("ingame","home");
     reset();
 }
@@ -346,7 +391,7 @@ function jouer(){
         }
     }
     if(bool == false) {
-        alert("tous les bateau ne sont pas placés");
+        toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
         supprimg();
         initlistener();
