@@ -208,49 +208,23 @@ io.on('connection', function (socket) {
     
     socket.on("boat_placed", function(){
         
-        salonFound = rooms.find(function(element){
-            return element.socket1 == socket;
-        })
-        
-        if(salonFound == undefined){
-            salonFound = rooms.find(function(element){
-                return element.socket2 == socket;
-            })
-            if(salonFound != undefined){
-                if(salonFound.boatOK != undefined){
-                    var rand = Math.floor(Math.random() * 2) % 2;
-                    if (rand == 0) {
-                        salonFound.socket1.emit("jouer");
-                        salonFound.socket2.emit("attendre");
-                    } else {
-                        salonFound.socket1.emit("attendre");
-                        salonFound.socket2.emit("jouer");
-                    }
-                }
-                else{
-                    salonFound.boatOK = true;
-                    salonFound.socket1.emit("boat_placed");
-                }
-            }
-            else{
-                console.log("room not found");
-            }
-        }
-        else{
-            
+        salonFound = findSalon(socket);
+        if (salonFound == undefined) {
+            console.log("erreur lors du boat placed, aucune partie ne correspond !");
+        } else {
+            var bplaced_p2 = (salonFound.socket1 == socket) ? salonFound.socket2 : salonFound.socket1;
             if(salonFound.boatOK != undefined){
                 var rand = Math.floor(Math.random() * 2) % 2;
                 if (rand == 0) {
-                    salonFound.socket1.emit("jouer");
-                    salonFound.socket2.emit("attendre");
+                    socket.emit("jouer");
+                    bplaced_p2.emit("attendre");
                 } else {
-                    salonFound.socket1.emit("attendre");
-                    salonFound.socket2.emit("jouer");
+                    socket.emit("attendre");
+                    bplaced_p2.emit("jouer");
                 }
-            }
-            else{
+            } else {
                 salonFound.boatOK = true;
-                salonFound.socket2.emit("boat_placed");
+                bplaced_p2.emit("boat_placed");
             }
         }
     });

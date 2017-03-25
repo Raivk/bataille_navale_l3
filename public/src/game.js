@@ -394,7 +394,13 @@ function jouer(){
         toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
         supprimg();
-        socket.on("jouer", debut());
+        socket.on("jouer", function() {
+            console.log("c'est mon tour");
+            initlistener();
+        });
+        socket.on("attendre", function() {
+            console.log("ce n'est pas mon tour");
+        })
         socket.emit("boat_placed");
     }
 }
@@ -410,13 +416,7 @@ function fire(j){
     });
 }
 
-function debut() {
-    console.log("tamerec'estpasmoiquimerde");
-    initlistener();
-}
-
 function initlistener() {
-    console.log("toto");
     var gridDiv = document.querySelectorAll('.bot');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].setAttribute('vide', true);
