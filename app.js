@@ -218,9 +218,14 @@ io.on('connection', function (socket) {
             })
             if(salonFound != undefined){
                 if(salonFound.boatOK != undefined){
-                    //Faire lancer piece pour voir qui commence
-                    //Envoyer le jouerOK au gagnant
-                    //Envoyer le attendre au perdant
+                    var rand = Math.floor(Math.random() * 2) % 2;
+                    if (rand == 0) {
+                        salonFound.socket1.emit("jouer");
+                        salonFound.socket2.emit("attendre");
+                    } else {
+                        salonFound.socket1.emit("attendre");
+                        salonFound.socket2.emit("jouer");
+                    }
                 }
                 else{
                     salonFound.boatOK = true;
@@ -234,9 +239,14 @@ io.on('connection', function (socket) {
         else{
             
             if(salonFound.boatOK != undefined){
-                //Faire lancer piece pour voir qui commence
-                //Envoyer le jouerOK au gagnant
-                //Envoyer le attendre au perdant
+                var rand = Math.floor(Math.random() * 2) % 2;
+                if (rand == 0) {
+                    salonFound.socket1.emit("jouer");
+                    salonFound.socket2.emit("attendre");
+                } else {
+                    salonFound.socket1.emit("attendre");
+                    salonFound.socket2.emit("jouer");
+                }
             }
             else{
                 salonFound.boatOK = true;
@@ -296,18 +306,18 @@ io.on('connection', function (socket) {
         }
         else{
             if(salonFound.socket1 == socket){
-                salonFound.socket2.emit("act_attacked",data);
-                salonFound.socket2.on("waiting_status",function(data2){
+                salonFound.socket2.emit("player_attack",data);
+                salonFound.socket2.on("result_attack",function(data2){
                     socket.emit("result_attack",data2);
-                    salonFound.socket2.removeListener("waiting_status");
+                    salonFound.socket2.removeListener("result_attack");
                 });
                 
             }
             else{
-                salonFound.socket1.emit("act_attacked",data);
-                salonFound.socket1.on("waiting_status",function(data2){
+                salonFound.socket1.emit("player_attack",data);
+                salonFound.socket1.on("result_attack",function(data2){
                     socket.emit("result_attack",data2);
-                    salonFound.socket1.removeListener("waiting_status");
+                    salonFound.socket1.removeListener("result_attack");
                 });
                 
             }

@@ -394,20 +394,29 @@ function jouer(){
         toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
         supprimg();
-        initlistener();
+        socket.on("jouer", debut());
         socket.emit("boat_placed");
     }
 }
 
 function fire(j){
-    if (j.target.getAttribute('boat') != null) {
-        coloriage(j, 'purple');
-    } else {
-        coloriage(j, 'yellow');
-    }
+    socket.emit("player_attack", j);
+    socket.on("result_attack", function(h) { 
+        if (h.target.getAttribute('boat') != null) {
+            coloriage(h, 'purple');
+        } else {
+            coloriage(h, 'yellow');
+        }
+    });
+}
+
+function debut() {
+    console.log("tamerec'estpasmoiquimerde");
+    initlistener();
 }
 
 function initlistener() {
+    console.log("toto");
     var gridDiv = document.querySelectorAll('.bot');
 	for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].setAttribute('vide', true);
