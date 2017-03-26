@@ -214,6 +214,7 @@ function quitter_partie(){
 var taille = 10;
 var isdrag = false; //si un element est selectionner pour drag.
 var valide = false; //si le bateau peut etre placé a la case.
+var ajouer; //si le jouer a jouer.
 var elem;
 var div;
 
@@ -254,7 +255,7 @@ function gridb(gridDiv, pos, i, j){
     el.setAttribute('class', 'grid-cell bot');
 
     el.setAttribute('vide', true);
-    el.setAttribute('id', i + "" + j);
+    el.setAttribute('id', i + "b" + j);
 
     el.self = this;
     gridDiv[pos].appendChild(el);
@@ -291,39 +292,38 @@ function eventclic(j){
 function placementMouseover(j){
     if (isdrag == true) {
         div = j;
-        coloriage(j, 'black');
+        coloriage(j.target, 'black');
     }
 }
 
 function placementMouseout(j){
     if (isdrag == true) {
         div = null;
-        coloriage(j, '#99C2E1')
+        coloriage(j.target, '#99C2E1')
     }
 }
 
 function point(j, x, y) {
-   return (document.getElementById('' + (parseInt(Math.floor(j.target.getAttribute('data-x')) + parseInt(Math.floor(x)))) + '' + (parseInt(Math.floor(j.target.getAttribute('data-y')) + parseInt(Math.floor(y))))));
+   return (document.getElementById('' + (parseInt(Math.floor(j.getAttribute('data-x')) + parseInt(Math.floor(x)))) + '' + (parseInt(Math.floor(j.getAttribute('data-y')) + parseInt(Math.floor(y))))));
 }
 
 function listecase(j) {
     var tailleboat = elem.target.getAttribute('taille');
     var liste = [];
-    lui = j.target;
     valide = true;
     if (elem.target.getAttribute('pos') == 'h' 
-    && ((-1 <= lui.getAttribute('data-y')-tailleboat/2)
-    && (lui.getAttribute('data-y') < taille) 
-    && (-1 < (parseInt(lui.getAttribute('data-y'))+tailleboat/2))
-    && (parseInt(lui.getAttribute('data-y'))+tailleboat/2) < taille)) {
+    && ((-1 <= j.getAttribute('data-y')-tailleboat/2)
+    && (j.getAttribute('data-y') < taille) 
+    && (-1 < (parseInt(j.getAttribute('data-y'))+tailleboat/2))
+    && (parseInt(j.getAttribute('data-y'))+tailleboat/2) < taille)) {
         for (var i = 0; i < tailleboat; i++) {
             liste[i] = point(j, 0, tailleboat/2 - i);
         }
     } else if (elem.target.getAttribute('pos') == 'v'
-              && ((-1 <= lui.getAttribute('data-x')-tailleboat/2)
-    && (lui.getAttribute('data-x') < taille) 
-    && (-1 < (parseInt(lui.getAttribute('data-x'))+tailleboat/2))
-    && (parseInt(lui.getAttribute('data-x'))+tailleboat/2) < taille)) {
+              && ((-1 <= j.getAttribute('data-x')-tailleboat/2)
+    && (j.getAttribute('data-x') < taille) 
+    && (-1 < (parseInt(j.getAttribute('data-x'))+tailleboat/2))
+    && (parseInt(j.getAttribute('data-x'))+tailleboat/2) < taille)) {
         for (var i = 0; i < tailleboat; i++) {
             liste[i] = point(j, tailleboat/2 - i, 0);
         }
@@ -336,7 +336,7 @@ function listecase(j) {
 
 function coloriage(j, couleur) {
     if (elem == null) {
-        j.target.style.backgroundColor = couleur;
+        j.style.backgroundColor = couleur;
     } else {
         var liste = listecase(j);
         if (estVerouiller(liste) == false) {
@@ -358,9 +358,9 @@ function estVerouiller(liste){
 }
 
 function verouiller(j) {
-    var liste = listecase(j);
+    var liste = listecase(j.target);
     for (var i = 0; i < liste.length; i++) {
-        coloriage(j, 'green');
+        coloriage(j.target, 'green');
         liste[i].setAttribute('vide', false);
         liste[i].setAttribute('boat', elem.target.getAttribute('id'));
     }
@@ -370,13 +370,13 @@ document.onkeydown = function (e) {
     e=e || window.event;
     var code=e.keyCode || e.wihch;
     if (code == 82 && isdrag == true && div != null) {
-        coloriage(div, '#99C2E1');
+        coloriage(div.target, '#99C2E1');
         if (elem.target.getAttribute('pos') == "h"){
             elem.target.setAttribute('pos', 'v');
         } else {
             elem.target.setAttribute('pos', 'h');
         }
-        coloriage(div, 'black');
+        coloriage(div.target, 'black');
     }
 }
 
@@ -395,24 +395,46 @@ function jouer(){
     } else {
         supprimg();
         socket.on("jouer", function() {
-            console.log("c'est mon tour");
-            initlistener();
+            debutaction();
         });
         socket.on("attendre", function() {
-            console.log("ce n'est pas mon tour");
+            debutattente();
         })
         socket.emit("boat_placed");
     }
 }
 
+function debutaction() {
+    ajouer = false;
+    console.log("c'est mon tour");
+    initlistener();
+}
+
+function debutattente() {
+    removelistener();
+    console.log("ce n'est pas mon tour");
+    socket.on("player_attack", function(data) {
+        socket.emit("result_attack", isVide(data));
+        socket.removeListener("player_attack");
+        debutaction();
+    });
+}
+
+function isVide(j) {
+    return document.getElementById(j).getAttribute("vide");
+}
+
 function fire(j){
-    socket.emit("player_attack", j);
-    socket.on("result_attack", function(h) { 
-        if (h.target.getAttribute('boat') != null) {
-            coloriage(h, 'purple');
+    var pos = "" + j.target.getAttribute("data-x") + j.target.getAttribute("data-y");
+    socket.emit("player_attack", pos);
+    socket.on("result_attack", function(data) {
+        if (data == "true") {
+            coloriage(j.target, 'purple');
         } else {
-            coloriage(h, 'yellow');
+            coloriage(j.target, 'yellow');
         }
+        socket.removeListener("result_attack");
+        debutattente();
     });
 }
 
@@ -421,6 +443,13 @@ function initlistener() {
 	for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].setAttribute('vide', true);
         gridDiv[grid].addEventListener('click', fire, false);
+	}
+}
+
+function removelistener() {
+    var gridDiv = document.querySelectorAll('.bot');
+	for (var grid = 0; grid < gridDiv.length; grid++) {
+        gridDiv[grid].removeEventListener('click', fire, false);
 	}
 }
 
@@ -433,7 +462,7 @@ function supprimg() {
         gridDiv[grid].removeEventListener('click', eventclic, false);
         gridDiv[grid].removeEventListener('mouseover', placementMouseover, false);
         gridDiv[grid].removeEventListener('mouseout', placementMouseout, false);
-        gridDiv[grid].setAttribute('vide', true);
+//        gridDiv[grid].setAttribute('vide', true);
 	}
 }
 

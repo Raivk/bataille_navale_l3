@@ -274,7 +274,6 @@ io.on('connection', function (socket) {
     
     socket.on("player_attack",function(data){
         salonFound = findSalon(socket);
-        
         if(salonFound == undefined){
             console.log("room not found");
         }
@@ -283,7 +282,7 @@ io.on('connection', function (socket) {
                 salonFound.socket2.emit("player_attack",data);
                 salonFound.socket2.on("result_attack",function(data2){
                     socket.emit("result_attack",data2);
-                    salonFound.socket2.removeListener("result_attack");
+                    salonFound.socket2.removeAllListeners("result_attack");
                 });
                 
             }
@@ -291,7 +290,7 @@ io.on('connection', function (socket) {
                 salonFound.socket1.emit("player_attack",data);
                 salonFound.socket1.on("result_attack",function(data2){
                     socket.emit("result_attack",data2);
-                    salonFound.socket1.removeListener("result_attack");
+                    salonFound.socket1.removeAllListeners("result_attack");
                 });
                 
             }
