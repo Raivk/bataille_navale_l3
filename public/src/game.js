@@ -420,16 +420,103 @@ function debutattente() {
     });
 }
 
+function getboat(j) {
+    var listeb = [];
+    var bateau = j.getAttribute("boat");
+    var gridDiv = document.querySelectorAll('.player');
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau) {
+            listeb.push(gridDiv[grid].getAttribute("data-x") + "b" + gridDiv[grid].getAttribute("data-y"))
+        }
+    }
+    return listeb;
+}
+
 function isVide(j) {
-    return document.getElementById(j).getAttribute("vide");
+    var part1 = document.getElementById(j).getAttribute("vide");
+    var res = [part1];
+    if (part1 == "false") {
+        part1 = 1;
+        document.getElementById(j).setAttribute('toucher', true);
+        coloriage(document.getElementById(j), 'red');
+        res = [part1];
+        if (iscouler(document.getElementById(j))) {
+            part1 = 2;
+            var part2 = getboat(document.getElementById(j));
+            if (isFin()) {
+                part1 = 3;
+                var gridDiv = document.querySelectorAll('.player');
+                for (var grid = 0; grid < gridDiv.length; grid++) {
+                    coloriage(gridDiv[grid], "black");
+                }
+            }
+            res = [part1, part2];
+        }
+    } else {
+        part1 = 0;
+        res = [part1];
+    }
+    return res;
+}
+
+function isFin() {
+    var gridDiv = document.querySelectorAll('.player');
+    var taillecoul = 0;
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("couler") == "true") {
+            taillecoul++;
+        }
+    }
+    if (taillecoul == 17) {
+        return true;
+    }
+    return false;
+}
+
+function iscouler(j) {
+    var gridDiv = document.querySelectorAll('.player');
+    var bateau = j.getAttribute("boat");
+    var tailletouch = 0;
+	for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
+            tailletouch++;
+        }
+    }
+    if (tailletouch == document.getElementById(bateau).getAttribute("taille")) {
+        for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
+            coloriage(gridDiv[grid], "black");
+            gridDiv[grid].setAttribute("couler", "true");
+            tailletouch++;
+        }
+    }
+        return true;
+    }
+    return false;
 }
 
 function fire(j){
     var pos = "" + j.target.getAttribute("data-x") + j.target.getAttribute("data-y");
     socket.emit("player_attack", pos);
     socket.on("result_attack", function(data) {
-        if (data == "true") {
+        if (data[0] == 1) {
             coloriage(j.target, 'purple');
+        } else  if (data[0] == 2) {
+            coloriage(j.target, 'purple');
+            for (var i = 0; i < data[1].length; i++) {
+                coloriage(document.getElementById(data[1][i]), "black");
+                document.getElementById(data[1][i]).setAttribute("couler","true");
+            }
+        } else if (data[0] == 3) {
+            coloriage(j.target, 'purple');
+            for (var i = 0; i < data[1].length; i++) {
+                coloriage(document.getElementById(data[1][i]), "black");
+                document.getElementById(data[1][i]).setAttribute("couler","true");
+            }
+            var gridDiv = document.querySelectorAll('.player');
+            for (var grid = 0; grid < gridDiv.length; grid++) {
+                coloriage(gridDiv[grid], "black");
+            }
         } else {
             coloriage(j.target, 'yellow');
         }
@@ -462,7 +549,6 @@ function supprimg() {
         gridDiv[grid].removeEventListener('click', eventclic, false);
         gridDiv[grid].removeEventListener('mouseover', placementMouseover, false);
         gridDiv[grid].removeEventListener('mouseout', placementMouseout, false);
-//        gridDiv[grid].setAttribute('vide', true);
 	}
 }
 
