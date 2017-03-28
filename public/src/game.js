@@ -217,6 +217,7 @@ var valide = false; //si le bateau peut etre placé a la case.
 var ajouer; //si le jouer a jouer.
 var elem;
 var div;
+var gamefinie = false;
 
 function createGrid() {
 	var gridDivj = document.querySelectorAll('.grid-j');
@@ -449,12 +450,18 @@ function isVide(j) {
                 for (var grid = 0; grid < gridDiv.length; grid++) {
                     coloriage(gridDiv[grid], "black");
                 }
+                var gridDiv = document.querySelectorAll('.bot');
+                for (var grid = 0; grid < gridDiv.length; grid++) {
+                    coloriage(gridDiv[grid], "black");
+                }
+                fingame();
             }
             res = [part1, part2];
         }
     } else {
         part1 = 0;
         res = [part1];
+        coloriage(document.getElementById(j), 'blue');
     }
     return res;
 }
@@ -517,6 +524,11 @@ function fire(j){
             for (var grid = 0; grid < gridDiv.length; grid++) {
                 coloriage(gridDiv[grid], "black");
             }
+            var gridDiv = document.querySelectorAll('.bot');
+            for (var grid = 0; grid < gridDiv.length; grid++) {
+                coloriage(gridDiv[grid], "black");
+            }
+            fingame();
         } else {
             coloriage(j.target, 'yellow');
         }
@@ -526,18 +538,20 @@ function fire(j){
 }
 
 function initlistener() {
-    var gridDiv = document.querySelectorAll('.bot');
-	for (var grid = 0; grid < gridDiv.length; grid++) {
-        gridDiv[grid].setAttribute('vide', true);
-        gridDiv[grid].addEventListener('click', fire, false);
+    if (!gamefinie) {
+        var gridDiv = document.querySelectorAll('.bot');
+        for (var grid = 0; grid < gridDiv.length; grid++) {
+            gridDiv[grid].setAttribute('vide', true);
+            gridDiv[grid].addEventListener('click', fire, false);
+        }
 	}
 }
 
 function removelistener() {
     var gridDiv = document.querySelectorAll('.bot');
-	for (var grid = 0; grid < gridDiv.length; grid++) {
+    for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].removeEventListener('click', fire, false);
-	}
+    }
 }
 
 function supprimg() {
@@ -550,6 +564,11 @@ function supprimg() {
         gridDiv[grid].removeEventListener('mouseover', placementMouseover, false);
         gridDiv[grid].removeEventListener('mouseout', placementMouseout, false);
 	}
+}
+
+function fingame() {
+    gamefinie = true;
+    removelistener();
 }
 
 function reset() {
