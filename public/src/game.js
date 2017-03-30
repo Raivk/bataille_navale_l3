@@ -280,10 +280,11 @@ function selection(j){
                                 
 function eventclic(j){
     if (isdrag && valide) {
-        verouiller(j);
-        elem.target.classList.add("hide_by_default"); 
-        elem = null;
-        isdrag = false;
+        if (verouiller(j.target)) {
+            elem.target.classList.add("hide_by_default"); 
+            elem = null;
+            isdrag = false;
+        }
     }
     if (document.querySelectorAll('.boat').length == 0) {
         iddrag = false;
@@ -359,12 +360,18 @@ function estVerouiller(liste){
 }
 
 function verouiller(j) {
-    var liste = listecase(j.target);
-    for (var i = 0; i < liste.length; i++) {
-        coloriage(j.target, 'green');
-        liste[i].setAttribute('vide', false);
-        liste[i].setAttribute('boat', elem.target.getAttribute('id'));
+    var res = true;
+    var liste = listecase(j);
+    if (estVerouiller(liste)) {
+        res = false;
+    } else {
+        for (var i = 0; i < liste.length; i++) {
+            coloriage(j, 'green');
+            liste[i].setAttribute('vide', false);
+            liste[i].setAttribute('boat', elem.target.getAttribute('id'));
+        }
     }
+    return res;
 }
 
 document.onkeydown = function (e) {
