@@ -1,11 +1,3 @@
-//INGAME-------------------------------------
-
-
-//START
-
-start_game();
-
-//START
 
 function hide_boat_placement(){
     document.getElementsByClassName("boats")[0].classList.add("hide_by_default");
@@ -19,19 +11,16 @@ function show_boat_placement(){
 
 function start_game(){
     createGrid();
-}
-
-function quitter_partie(){
-    document.getElementById("show_bt").classList.add("hide_by_default");
-    switch_page("ingame","home");
-    reset();
+    placeboat_IA();
 }
 
 var taille = 10;
 var isdrag = false; //si un element est selectionner pour drag.
-var valide = false; //rien pour le moment.
+var valide = false; //si le bateau peut etre placé a la case.
+var ajouer; //si le jouer a jouer.
 var elem;
 var div;
+var gamefinie = false;
 
 function createGrid() {
 	var gridDivj = document.querySelectorAll('.grid-j');
@@ -70,7 +59,7 @@ function gridb(gridDiv, pos, i, j){
     el.setAttribute('class', 'grid-cell bot');
 
     el.setAttribute('vide', true);
-    el.setAttribute('id', i + "" + j);
+    el.setAttribute('id', i + "b" + j);
 
     el.self = this;
     gridDiv[pos].appendChild(el);
@@ -92,13 +81,13 @@ function selection(j){
     }
 }
                                 
-function eventclic(j){
+function eventclic(j) {
     if (isdrag && valide) {
-        if (verouiller(j)) {
-        elem.target.classList.add("hide_by_default"); 
-        elem = null;
-        isdrag = false;
-    }
+        if (verouiller(j.target)) {
+            elem.target.classList.add("hide_by_default");
+            elem = null;
+            isdrag = false;
+        }
     }
     if (document.querySelectorAll('.boat').length == 0) {
         iddrag = false;
@@ -108,39 +97,38 @@ function eventclic(j){
 function placementMouseover(j){
     if (isdrag == true) {
         div = j;
-        coloriage(j, 'black');
+        coloriage(j.target, 'black');
     }
 }
 
 function placementMouseout(j){
     if (isdrag == true) {
         div = null;
-        coloriage(j, '#99C2E1')
+        coloriage(j.target, '#99C2E1')
     }
 }
 
 function point(j, x, y) {
-   return (document.getElementById('' + (parseInt(Math.floor(j.target.getAttribute('data-x')) + parseInt(Math.floor(x)))) + '' + (parseInt(Math.floor(j.target.getAttribute('data-y')) + parseInt(Math.floor(y))))));
+   return (document.getElementById('' + (parseInt(Math.floor(j.getAttribute('data-x')) + parseInt(Math.floor(x)))) + '' + (parseInt(Math.floor(j.getAttribute('data-y')) + parseInt(Math.floor(y))))));
 }
 
 function listecase(j) {
     var tailleboat = elem.target.getAttribute('taille');
     var liste = [];
-    lui = j.target;
     valide = true;
     if (elem.target.getAttribute('pos') == 'h' 
-    && ((-1 <= lui.getAttribute('data-y')-tailleboat/2)
-    && (lui.getAttribute('data-y') < taille) 
-    && (-1 < (parseInt(lui.getAttribute('data-y'))+tailleboat/2))
-    && (parseInt(lui.getAttribute('data-y'))+tailleboat/2) < taille)) {
+    && ((-1 <= j.getAttribute('data-y')-tailleboat/2)
+    && (j.getAttribute('data-y') < taille) 
+    && (-1 < (parseInt(j.getAttribute('data-y'))+tailleboat/2))
+    && (parseInt(j.getAttribute('data-y'))+tailleboat/2) < taille)) {
         for (var i = 0; i < tailleboat; i++) {
             liste[i] = point(j, 0, tailleboat/2 - i);
         }
     } else if (elem.target.getAttribute('pos') == 'v'
-              && ((-1 <= lui.getAttribute('data-x')-tailleboat/2)
-    && (lui.getAttribute('data-x') < taille) 
-    && (-1 < (parseInt(lui.getAttribute('data-x'))+tailleboat/2))
-    && (parseInt(lui.getAttribute('data-x'))+tailleboat/2) < taille)) {
+              && ((-1 <= j.getAttribute('data-x')-tailleboat/2)
+    && (j.getAttribute('data-x') < taille) 
+    && (-1 < (parseInt(j.getAttribute('data-x'))+tailleboat/2))
+    && (parseInt(j.getAttribute('data-x'))+tailleboat/2) < taille)) {
         for (var i = 0; i < tailleboat; i++) {
             liste[i] = point(j, tailleboat/2 - i, 0);
         }
@@ -153,7 +141,7 @@ function listecase(j) {
 
 function coloriage(j, couleur) {
     if (elem == null) {
-        j.target.style.backgroundColor = couleur;
+        j.style.backgroundColor = couleur;
     } else {
         var liste = listecase(j);
         if (estVerouiller(liste) == false) {
@@ -164,15 +152,16 @@ function coloriage(j, couleur) {
     }
 }
 
-function estVerouiller(liste){
+function estVerouiller(liste) {
     var res = false;
     for (var i = 0; i < liste.length; i++) {
-        if (liste[i].getAttribute('vide') != 'true'){
+        if (liste[i].getAttribute('vide') != 'true') {
             res = true;
         }
     }
     return res;
 }
+
 
 function verouiller(j) {
     var res = true;
@@ -193,13 +182,13 @@ document.onkeydown = function (e) {
     e=e || window.event;
     var code=e.keyCode || e.wihch;
     if (code == 82 && isdrag == true && div != null) {
-        coloriage(div, '#99C2E1');
+        coloriage(div.target, '#99C2E1');
         if (elem.target.getAttribute('pos') == "h"){
             elem.target.setAttribute('pos', 'v');
         } else {
             elem.target.setAttribute('pos', 'h');
         }
-        coloriage(div, 'black');
+        coloriage(div.target, 'black');
     }
 }
 
@@ -214,27 +203,158 @@ function jouer(){
         }
     }
     if(bool == false) {
-        alert("tous les bateau ne sont pas placés");
+        toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
         supprimg();
-        initlistener();
+        var r=Math.floor(Math.random()*2);
+        if(r==0){
+            debutaction();
+        }
+        else{
+            debutattente();
+        }
     }
+}
+
+function debutaction() {
+    ajouer = false;
+    console.log("c'est mon tour");
+    initlistener();
+}
+
+function debutattente() {
+    removelistener();
+    console.log("ce n'est pas mon tour");
+    debutaction();
+}
+
+function getboat(j) {
+    var listeb = [];
+    var bateau = j.getAttribute("boat");
+    var gridDiv = document.querySelectorAll('.player');
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau) {
+            listeb.push(gridDiv[grid].getAttribute("data-x") + "b" + gridDiv[grid].getAttribute("data-y"))
+        }
+    }
+    return listeb;
+}
+
+function isVide(j) {
+    var part1 = document.getElementById(j).getAttribute("vide");
+    var res = [part1];
+    if (part1 == "false") {
+        part1 = 1;
+        document.getElementById(j).setAttribute('toucher', true);
+        coloriage(document.getElementById(j), 'red');
+        res = [part1];
+        if (iscouler(document.getElementById(j))) {
+            part1 = 2;
+            var part2 = getboat(document.getElementById(j));
+            if (isFin()) {
+                part1 = 3;
+                var gridDiv = document.querySelectorAll('.player');
+                for (var grid = 0; grid < gridDiv.length; grid++) {
+                    coloriage(gridDiv[grid], "black");
+                }
+                var gridDiv = document.querySelectorAll('.bot');
+                for (var grid = 0; grid < gridDiv.length; grid++) {
+                    coloriage(gridDiv[grid], "black");
+                }
+                fingame();
+            }
+            res = [part1, part2];
+        }
+    } else {
+        part1 = 0;
+        res = [part1];
+        coloriage(document.getElementById(j), 'blue');
+    }
+    return res;
+}
+
+function isFin() {
+    var gridDiv = document.querySelectorAll('.player');
+    var taillecoul = 0;
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("couler") == "true") {
+            taillecoul++;
+        }
+    }
+    if (taillecoul == 17) {
+        return true;
+    }
+    return false;
+}
+
+function iscouler(j) {
+    var gridDiv = document.querySelectorAll('.player');
+    var bateau = j.getAttribute("boat");
+    var tailletouch = 0;
+	for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
+            tailletouch++;
+        }
+    }
+    if (tailletouch == document.getElementById(bateau).getAttribute("taille")) {
+        for (var grid = 0; grid < gridDiv.length; grid++) {
+        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
+            coloriage(gridDiv[grid], "black");
+            gridDiv[grid].setAttribute("couler", "true");
+            tailletouch++;
+        }
+    }
+        return true;
+    }
+    return false;
 }
 
 function fire(j){
-    if (j.target.getAttribute('boat') != null) {
-        coloriage(j, 'purple');
-    } else {
-        coloriage(j, 'yellow');
-    }
+    var pos = "" + j.target.getAttribute("data-x") + j.target.getAttribute("data-y");
+        if (data[0] == 1) {
+            coloriage(j.target, 'purple');
+        } else  if (data[0] == 2) {
+            coloriage(j.target, 'purple');
+            for (var i = 0; i < data[1].length; i++) {
+                coloriage(document.getElementById(data[1][i]), "black");
+                document.getElementById(data[1][i]).setAttribute("couler","true");
+            }
+        } else if (data[0] == 3) {
+            coloriage(j.target, 'purple');
+            for (var i = 0; i < data[1].length; i++) {
+                coloriage(document.getElementById(data[1][i]), "black");
+                document.getElementById(data[1][i]).setAttribute("couler","true");
+            }
+            var gridDiv = document.querySelectorAll('.player');
+            for (var grid = 0; grid < gridDiv.length; grid++) {
+                coloriage(gridDiv[grid], "black");
+            }
+            var gridDiv = document.querySelectorAll('.bot');
+            for (var grid = 0; grid < gridDiv.length; grid++) {
+                coloriage(gridDiv[grid], "black");
+            }
+            fingame();
+        } else {
+            coloriage(j.target, 'yellow');
+        }
+        debutattente();
 }
 
 function initlistener() {
-    var gridDiv = document.querySelectorAll('.bot');
-	for (var grid = 0; grid < gridDiv.length; grid++) {
-        gridDiv[grid].setAttribute('vide', true);
-        gridDiv[grid].addEventListener('click', fire, false);
+    if (!gamefinie) {
+        var gridDiv = document.querySelectorAll('.bot');
+        for (var grid = 0; grid < gridDiv.length; grid++) {
+            gridDiv[grid].setAttribute('vide', true);
+            gridDiv[grid].addEventListener('click', fire, false);
+        }
 	}
+}
+
+function removelistener() {
+    var gridDiv = document.querySelectorAll('.bot');
+    for (var grid = 0; grid < gridDiv.length; grid++) {
+        gridDiv[grid].removeEventListener('click', fire, false);
+    }
 }
 
 function supprimg() {
@@ -246,8 +366,12 @@ function supprimg() {
         gridDiv[grid].removeEventListener('click', eventclic, false);
         gridDiv[grid].removeEventListener('mouseover', placementMouseover, false);
         gridDiv[grid].removeEventListener('mouseout', placementMouseout, false);
-        gridDiv[grid].setAttribute('vide', true);
 	}
+}
+
+function fingame() {
+    gamefinie = true;
+    removelistener();
 }
 
 function reset() {
@@ -261,5 +385,73 @@ function reset() {
         img[el].classList.remove("hide_by_default");
     }
 }
+
+
+function play_IA(){
+    var r1=Math.floor(Math.random()*taille);
+    var r2=Math.floor(Math.random()*taille);
+    var cell=document.getElementById(r1+""+r2);
+    fire(cell);
+       
+}
+
+function placeboat_IA() {
+    var img = document.getElementsByClassName("boat");
+    for (var el = 0; el < img.length; el++) {
+        let liste_posOK = [];
+        let taille_boat = parseInt(img[el].getAttribute('taille'));
+        while (liste_posOK.length != taille_boat) {
+            let r1 = Math.floor(Math.random() * taille);
+            let r2 = Math.floor(Math.random() * taille);
+            let r3 = Math.floor(Math.random() * 2);
+            if (document.getElementById(r1 + 'b' + r2).getAttribute('vide') == "true") {
+                liste_posOK.push(r1+'b'+r2);
+                if (r3 == 0) {
+                    for (x = 1; x < taille_boat; x++) {
+                        if (document.getElementById((r1+x) + 'b' + r2) != undefined){
+                            if (document.getElementById((r1 + x) + 'b' + r2).getAttribute('vide') == "true") {
+                                liste_posOK.push((r1 + x) + 'b' + r2);
+                            }
+                            else{
+                                liste_posOK = [];
+                                break;
+                            }
+                        }
+                        else{
+                            liste_posOK = [];
+                            break;
+                        }
+                    }
+                }
+                else{
+                    for(x = 1; x<taille_boat; x++){
+                        if (document.getElementById(r1 + 'b' + (r2 + x)) != undefined){
+                            if(document.getElementById(r1 + 'b' + (r2 + x)).getAttribute('vide') == "true"){
+                                liste_posOK.push(r1+'b'+(r2+x));
+                            }
+                            else{
+                                liste_posOK = [];
+                                break;
+                            }
+                        }
+                        else{
+                            liste_posOK = [];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if(liste_posOK.length == taille_boat){
+                liste_posOK.forEach(function(element){
+                    let cell = document.getElementById(element);
+                    cell.setAttribute('vide', false);
+                    coloriage(cell, "black");
+                });
+            }
+        }
+    }
+}
+
 
 start_game();
