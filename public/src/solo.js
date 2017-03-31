@@ -1,3 +1,40 @@
+toastr.options = {
+  "closeButton": false,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": true,
+  "positionClass": "toast-top-full-width",
+  "preventDuplicates": false,
+  "onclick": null,
+  "showDuration": "300",
+  "hideDuration": "1000",
+  "timeOut": "5000",
+  "extendedTimeOut": "1000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+};
+
+var listeBoatJoueur = new Map();
+var listeBoatBot = new Map();
+var r;
+var a_joue = false;
+var bateau_taille = [["porte-avion", 5], ["croiseur", 4], ["contre-torpilleur", 3], ["sous-marin", 3], ["torpilleur", 2]];
+
+var taille_bateaux = new Map(bateau_taille);
+
+listeBoatBot.set("porte-avion", 0);
+listeBoatBot.set("croiseur", 0);
+listeBoatBot.set("contre-torpilleur", 0);
+listeBoatBot.set("sous-marin", 0);
+listeBoatBot.set("torpilleur", 0);
+
+listeBoatJoueur.set("porte-avion", 0);
+listeBoatJoueur.set("croiseur", 0);
+listeBoatJoueur.set("contre-torpilleur", 0);
+listeBoatJoueur.set("sous-marin", 0);
+listeBoatJoueur.set("torpilleur", 0);
 
 function hide_boat_placement(){
     document.getElementsByClassName("boats")[0].classList.add("hide_by_default");
@@ -44,6 +81,7 @@ function gridj(gridDiv, pos, i, j){
 
     el.setAttribute('vide', true);
     el.setAttribute('id', i + "" + j);
+    el.setAttribute('toucher','false');
 
     el.self = this;
     el.addEventListener('click', eventclic, false);
@@ -206,8 +244,8 @@ function jouer(){
         toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
         supprimg();
-        var r=Math.floor(Math.random()*2);
-        if(r==0){
+        r=Math.floor(Math.random()*2);
+        if(r == 0){
             debutaction();
         }
         else{
@@ -217,134 +255,105 @@ function jouer(){
 }
 
 function debutaction() {
-    ajouer = false;
     console.log("c'est mon tour");
     initlistener();
+    
 }
 
 function debutattente() {
     removelistener();
-    console.log("ce n'est pas mon tour");
-    debutaction();
+    play_IA();
 }
 
-function getboat(j) {
-    var listeb = [];
-    var bateau = j.getAttribute("boat");
-    var gridDiv = document.querySelectorAll('.player');
-    for (var grid = 0; grid < gridDiv.length; grid++) {
-        if (gridDiv[grid].getAttribute("boat") == bateau) {
-            listeb.push(gridDiv[grid].getAttribute("data-x") + "b" + gridDiv[grid].getAttribute("data-y"))
+
+
+
+
+function fire(j, tour){
+	if(tour != undefined){
+        console.log("bot joue");
+		//jouerBot
+        if(j.getAttribute('vide')=="false"){
+            coloriage(j, 'purple');
+            j.setAttribute('toucheB',true);
+            listeBoatJoueur.set(j.getAttribute('boat'), listeBoatJoueur.get(j.getAttribute('boat'))+1);
+            if(listeBoatJoueur.get(j.getAttribute("boat")) == taille_bateaux.get(j.getAttribute("boat"))) {
+                let bateauxCoules = document.querySelector('.grid-j').querySelectorAll('[boat='+j.getAttribute("boat")+']');
+                bateauxCoules.forEach(function(element){
+                    coloriage(element, "black");
+                    element.getAttribute("couler", true);
+                })
+            }
         }
-    }
-    return listeb;
-}
-
-function isVide(j) {
-    var part1 = document.getElementById(j).getAttribute("vide");
-    var res = [part1];
-    if (part1 == "false") {
-        part1 = 1;
-        document.getElementById(j).setAttribute('toucher', true);
-        coloriage(document.getElementById(j), 'red');
-        res = [part1];
-        if (iscouler(document.getElementById(j))) {
-            part1 = 2;
-            var part2 = getboat(document.getElementById(j));
-            if (isFin()) {
-                part1 = 3;
-                var gridDiv = document.querySelectorAll('.player');
-                for (var grid = 0; grid < gridDiv.length; grid++) {
-                    coloriage(gridDiv[grid], "black");
+        else{
+            coloriage(j, 'yellow');
+        }
+        j.setAttribute('toucher',true);
+        test_Game();
+        debutaction();
+	}
+	else{
+		//jouer joueur
+        console.log("joueur joue");
+		var pos = "" + j.target.getAttribute("data-x") +"b"+ j.target.getAttribute("data-y");
+		var cell = document.getElementById(pos);
+		if(cell.getAttribute('toucher') == undefined){
+			if(cell.getAttribute('vide')=="false"){
+				coloriage(cell, 'purple');
+				cell.setAttribute('toucheB',true);
+                listeBoatBot.set(cell.getAttribute('boat'), listeBoatBot.get(cell.getAttribute('boat'))+1);
+                if(listeBoatBot.get(cell.getAttribute("boat")) == taille_bateaux.get(cell.getAttribute("boat"))) {
+                    let bateauxCoules = document.querySelector('.grid-b').querySelectorAll('[boat='+cell.getAttribute("boat")+']');
+                    bateauxCoules.forEach(function(element){
+                        coloriage(element, "black");
+                        element.getAttribute("couler", true);
+                    })
                 }
-                var gridDiv = document.querySelectorAll('.bot');
-                for (var grid = 0; grid < gridDiv.length; grid++) {
-                    coloriage(gridDiv[grid], "black");
-                }
-                fingame();
-            }
-            res = [part1, part2];
-        }
-    } else {
-        part1 = 0;
-        res = [part1];
-        coloriage(document.getElementById(j), 'blue');
-    }
-    return res;
-}
-
-function isFin() {
-    var gridDiv = document.querySelectorAll('.player');
-    var taillecoul = 0;
-    for (var grid = 0; grid < gridDiv.length; grid++) {
-        if (gridDiv[grid].getAttribute("couler") == "true") {
-            taillecoul++;
-        }
-    }
-    if (taillecoul == 17) {
-        return true;
-    }
-    return false;
-}
-
-function iscouler(j) {
-    var gridDiv = document.querySelectorAll('.player');
-    var bateau = j.getAttribute("boat");
-    var tailletouch = 0;
-	for (var grid = 0; grid < gridDiv.length; grid++) {
-        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
-            tailletouch++;
-        }
-    }
-    if (tailletouch == document.getElementById(bateau).getAttribute("taille")) {
-        for (var grid = 0; grid < gridDiv.length; grid++) {
-        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
-            coloriage(gridDiv[grid], "black");
-            gridDiv[grid].setAttribute("couler", "true");
-            tailletouch++;
-        }
-    }
-        return true;
-    }
-    return false;
-}
-
-function fire(j){
-    var pos = "" + j.target.getAttribute("data-x") + j.target.getAttribute("data-y");
-        if (data[0] == 1) {
-            coloriage(j.target, 'purple');
-        } else  if (data[0] == 2) {
-            coloriage(j.target, 'purple');
-            for (var i = 0; i < data[1].length; i++) {
-                coloriage(document.getElementById(data[1][i]), "black");
-                document.getElementById(data[1][i]).setAttribute("couler","true");
-            }
-        } else if (data[0] == 3) {
-            coloriage(j.target, 'purple');
-            for (var i = 0; i < data[1].length; i++) {
-                coloriage(document.getElementById(data[1][i]), "black");
-                document.getElementById(data[1][i]).setAttribute("couler","true");
-            }
-            var gridDiv = document.querySelectorAll('.player');
-            for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], "black");
-            }
-            var gridDiv = document.querySelectorAll('.bot');
-            for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], "black");
-            }
-            fingame();
-        } else {
-            coloriage(j.target, 'yellow');
-        }
+			}
+			else{
+                console.log("ca va dans l'eau");
+				coloriage(cell, 'yellow');
+			}
+			cell.setAttribute('toucher',true);
+			cell.removeEventListener('click', fire, false);
+		}
+        test_Game();
         debutattente();
+	}
+    
+}
+
+function test_Game(){
+    let testGameB = true;
+    let testGameJ = true;
+    
+    listeBoatBot.forEach(function(cle, valeur, map){
+        if(cle != taille_bateaux.get(valeur)){
+            testGameJ = false;
+        }
+    });
+    
+    listeBoatJoueur.forEach(function(cle, valeur, map){
+        
+        if(cle != taille_bateaux.get(valeur)){
+            testGameB = false;
+        }
+    });
+    
+    
+    if(testGameB){
+        fingame("bot");
+    }
+    else if(testGameJ){
+        fingame("joueur");
+    }
 }
 
 function initlistener() {
     if (!gamefinie) {
         var gridDiv = document.querySelectorAll('.bot');
         for (var grid = 0; grid < gridDiv.length; grid++) {
-            gridDiv[grid].setAttribute('vide', true);
+            //gridDiv[grid].setAttribute('vide', true);
             gridDiv[grid].addEventListener('click', fire, false);
         }
 	}
@@ -369,8 +378,16 @@ function supprimg() {
 	}
 }
 
-function fingame() {
+function fingame(player) {
     gamefinie = true;
+    if(player == "joueur"){
+        alert("GG WP");
+        window.location.href = "index.html";
+    }
+    else{
+        alert("Vous êtes mauvais ! Vous avez perdu !");
+        //window.location.href = "index.html";
+    }
     removelistener();
 }
 
@@ -388,11 +405,11 @@ function reset() {
 
 
 function play_IA(){
-    var r1=Math.floor(Math.random()*taille);
-    var r2=Math.floor(Math.random()*taille);
-    var cell=document.getElementById(r1+""+r2);
-    fire(cell);
-       
+    let liste_cellules = document.querySelector('.grid-j').querySelectorAll('[toucher=false]');
+    var r1=Math.floor(Math.random() * (liste_cellules.length - 1));
+    var cell=liste_cellules[r1];
+    fire(cell,"bot");
+    console.log("FEUUUUU !");
 }
 
 function placeboat_IA() {
@@ -445,7 +462,8 @@ function placeboat_IA() {
             if(liste_posOK.length == taille_boat){
                 liste_posOK.forEach(function(element){
                     let cell = document.getElementById(element);
-                    cell.setAttribute('vide', false);
+                    cell.setAttribute('vide', "false");
+                    cell.setAttribute('boat', img[el].getAttribute('id'));
                     coloriage(cell, "black");
                 });
             }
