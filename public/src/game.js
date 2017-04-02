@@ -24,6 +24,34 @@ toastr.options = {
   "hideMethod": "fadeOut"
 };
 
+
+inGameToastOptions = {
+  "closeButton": false,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": true,
+  "positionClass": "toast-bottom-full-width",
+  "preventDuplicates": false,
+  "onclick": null,
+  "showDuration": "300",
+  "hideDuration": "1000",
+  "timeOut": "5000",
+  "extendedTimeOut": "1000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+};
+
+//palette : http://www.palettable.io/99C2E1-FCF9F0-FEF88E-FFAB60-FFA07A
+
+var couleurFin = "black";
+var couleurCaseVide = "#99C2E1";
+var couleurCaseBateau = "#FCF9F0";
+var couleurRate = "#FEF88E";
+var couleurTouche = "#FFAB60";
+var couleurCoule = "#D45938";
+
 //TOATSR : how to use :------------------------
 /*
 //INFO TOAST
@@ -204,6 +232,7 @@ function start_game(){
 
 function quitter_partie(){
     document.getElementById("show_bt").classList.add("hide_by_default");
+    document.getElementById("gamestate").innerHTML = "Phase de préparation";
     socket.emit("quit_game");
     socket.removeListener("player_left");
     socket.removeListener("boat_placed");
@@ -294,14 +323,14 @@ function eventclic(j){
 function placementMouseover(j){
     if (isdrag == true) {
         div = j;
-        coloriage(j.target, 'black');
+        coloriage(j.target, couleurCaseBateau);
     }
 }
 
 function placementMouseout(j){
     if (isdrag == true) {
         div = null;
-        coloriage(j.target, '#99C2E1')
+        coloriage(j.target, couleurCaseVide);
     }
 }
 
@@ -366,7 +395,7 @@ function verouiller(j) {
         res = false;
     } else {
         for (var i = 0; i < liste.length; i++) {
-            coloriage(j, 'green');
+            coloriage(j, couleurCaseBateau);
             liste[i].setAttribute('vide', false);
             liste[i].setAttribute('boat', elem.target.getAttribute('id'));
         }
@@ -378,13 +407,13 @@ document.onkeydown = function (e) {
     e=e || window.event;
     var code=e.keyCode || e.wihch;
     if (code == 82 && isdrag == true && div != null) {
-        coloriage(div.target, '#99C2E1');
+        coloriage(div.target, couleurCaseVide);
         if (elem.target.getAttribute('pos') == "h"){
             elem.target.setAttribute('pos', 'v');
         } else {
             elem.target.setAttribute('pos', 'h');
         }
-        coloriage(div.target, 'black');
+        coloriage(div.target, couleurCaseBateau);
     }
 }
 
@@ -401,6 +430,7 @@ function jouer(){
     if(bool == false) {
         toastr.error("Vous n'avez pas placé tous vos bateaux...");
     } else {
+        document.getElementById("gamestate").innerHTML = "Fin de phase de préparation";
         supprimg();
         socket.on("jouer", function() {
             debutaction();
@@ -413,14 +443,18 @@ function jouer(){
 }
 
 function debutaction() {
+    if (!gamefinie) {
+        document.getElementById("gamestate").innerHTML = "C'est à vous de jouer";
+    }
     ajouer = false;
-    console.log("c'est mon tour");
     initlistener();
 }
 
 function debutattente() {
     removelistener();
-    console.log("ce n'est pas mon tour");
+    if (!gamefinie) {
+        document.getElementById("gamestate").innerHTML = "C'est au tour de l'adversaire";
+    }
     socket.on("player_attack", function(data) {
         socket.emit("result_attack", isVide(data));
         socket.removeListener("player_attack");
@@ -446,29 +480,35 @@ function isVide(j) {
     if (part1 == "false") {
         part1 = 1;
         document.getElementById(j).setAttribute('toucher', true);
-        coloriage(document.getElementById(j), 'red');
+        coloriage(document.getElementById(j), couleurTouche);
         res = [part1];
         if (iscouler(document.getElementById(j))) {
             part1 = 2;
             var part2 = getboat(document.getElementById(j));
             if (isFin()) {
+                toastr.error("Vous avez perdu...", "Dommage !", inGameToastOptions);
                 part1 = 3;
                 var gridDiv = document.querySelectorAll('.player');
                 for (var grid = 0; grid < gridDiv.length; grid++) {
-                    coloriage(gridDiv[grid], "black");
+                    coloriage(gridDiv[grid], couleurFin);
                 }
                 var gridDiv = document.querySelectorAll('.bot');
                 for (var grid = 0; grid < gridDiv.length; grid++) {
-                    coloriage(gridDiv[grid], "black");
+                    coloriage(gridDiv[grid], couleurFin);
                 }
                 fingame();
+            } else {
+                toastr.error("Un de vos bateaux a coulé...", "Attaque ennemie !", inGameToastOptions);
             }
             res = [part1, part2];
+        } else {
+            toastr.warning("Un de vos bateaux a été touché...", "Attaque ennemie !", inGameToastOptions);
         }
     } else {
+        toastr.success("L'ennemi a raté son tir !", "Attaque ennemie !", inGameToastOptions);
         part1 = 0;
         res = [part1];
-        coloriage(document.getElementById(j), 'blue');
+        coloriage(document.getElementById(j), couleurRate);
     }
     return res;
 }
@@ -499,7 +539,7 @@ function iscouler(j) {
     if (tailletouch == document.getElementById(bateau).getAttribute("taille")) {
         for (var grid = 0; grid < gridDiv.length; grid++) {
         if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
-            coloriage(gridDiv[grid], "black");
+            coloriage(gridDiv[grid], couleurCoule);
             gridDiv[grid].setAttribute("couler", "true");
             tailletouch++;
         }
@@ -514,30 +554,34 @@ function fire(j){
     socket.emit("player_attack", pos);
     socket.on("result_attack", function(data) {
         if (data[0] == 1) {
-            coloriage(j.target, 'purple');
+            toastr.success("Touché !", "Résultat de votre attaque", inGameToastOptions);
+            coloriage(j.target, couleurTouche);
         } else  if (data[0] == 2) {
-            coloriage(j.target, 'purple');
+            toastr.success("Coulé !", "Résultat de votre attaque", inGameToastOptions);
+            coloriage(j.target, couleurTouche);
             for (var i = 0; i < data[1].length; i++) {
-                coloriage(document.getElementById(data[1][i]), "black");
+                coloriage(document.getElementById(data[1][i]), couleurCoule);
                 document.getElementById(data[1][i]).setAttribute("couler","true");
             }
         } else if (data[0] == 3) {
-            coloriage(j.target, 'purple');
+            toastr.success("Victoire !", "Félicitations !", inGameToastOptions);
+            coloriage(j.target, couleurTouche);
             for (var i = 0; i < data[1].length; i++) {
-                coloriage(document.getElementById(data[1][i]), "black");
+                coloriage(document.getElementById(data[1][i]), couleurCoule);
                 document.getElementById(data[1][i]).setAttribute("couler","true");
             }
             var gridDiv = document.querySelectorAll('.player');
             for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], "black");
+                coloriage(gridDiv[grid], couleurCoule);
             }
             var gridDiv = document.querySelectorAll('.bot');
             for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], "black");
+                coloriage(gridDiv[grid], couleurCoule);
             }
             fingame();
         } else {
-            coloriage(j.target, 'yellow');
+            toastr.info("Raté !", "Résultat de votre attaque", inGameToastOptions);
+            coloriage(j.target, couleurRate);
         }
         socket.removeListener("result_attack");
         debutattente();
@@ -574,6 +618,7 @@ function supprimg() {
 }
 
 function fingame() {
+    document.getElementById("gamestate").innerHTML = "Partie terminée !";
     gamefinie = true;
     removelistener();
 }
