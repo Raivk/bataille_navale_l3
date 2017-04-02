@@ -3,7 +3,7 @@ toastr.options = {
   "debug": false,
   "newestOnTop": false,
   "progressBar": true,
-  "positionClass": "toast-top-full-width",
+  "positionClass": "toast-bottom-full-width",
   "preventDuplicates": false,
   "onclick": null,
   "showDuration": "300",
@@ -255,14 +255,13 @@ function jouer(){
 }
 
 function debutaction() {
-    console.log("c'est mon tour");
     initlistener();
     
 }
 
 function debutattente() {
     removelistener();
-    play_IA();
+    setTimeout(play_IA, 2000);
 }
 
 
@@ -271,17 +270,18 @@ function debutattente() {
 
 function fire(j, tour){
 	if(tour != undefined){
-        console.log("bot joue");
 		//jouerBot
         if(j.getAttribute('vide')=="false"){
             coloriage(j, 'purple');
             j.setAttribute('toucheB',true);
             listeBoatJoueur.set(j.getAttribute('boat'), listeBoatJoueur.get(j.getAttribute('boat'))+1);
+            toastr.warning("L'ennemi a touché votre "+j.getAttribute("boat")+".");
             if(listeBoatJoueur.get(j.getAttribute("boat")) == taille_bateaux.get(j.getAttribute("boat"))) {
                 let bateauxCoules = document.querySelector('.grid-j').querySelectorAll('[boat='+j.getAttribute("boat")+']');
                 bateauxCoules.forEach(function(element){
                     coloriage(element, "black");
                     element.getAttribute("couler", true);
+                    toastr.error("L'ennemi a coulé votre "+j.getAttribute("boat")+".");
                 })
             }
         }
@@ -294,7 +294,6 @@ function fire(j, tour){
 	}
 	else{
 		//jouer joueur
-        console.log("joueur joue");
 		var pos = "" + j.target.getAttribute("data-x") +"b"+ j.target.getAttribute("data-y");
 		var cell = document.getElementById(pos);
 		if(cell.getAttribute('toucher') == undefined){
@@ -302,17 +301,19 @@ function fire(j, tour){
 				coloriage(cell, 'purple');
 				cell.setAttribute('toucheB',true);
                 listeBoatBot.set(cell.getAttribute('boat'), listeBoatBot.get(cell.getAttribute('boat'))+1);
+                toastr.info("Vous avez touché un bateau !");
                 if(listeBoatBot.get(cell.getAttribute("boat")) == taille_bateaux.get(cell.getAttribute("boat"))) {
                     let bateauxCoules = document.querySelector('.grid-b').querySelectorAll('[boat='+cell.getAttribute("boat")+']');
                     bateauxCoules.forEach(function(element){
                         coloriage(element, "black");
                         element.getAttribute("couler", true);
                     })
+                    toastr.success("Vous avez coulé le "+cell.getAttribute("boat")+ " ennemi.");
                 }
 			}
 			else{
-                console.log("ca va dans l'eau");
 				coloriage(cell, 'yellow');
+                toastr.warning("C'est loupé !");
 			}
 			cell.setAttribute('toucher',true);
 			cell.removeEventListener('click', fire, false);
@@ -409,7 +410,6 @@ function play_IA(){
     var r1=Math.floor(Math.random() * (liste_cellules.length - 1));
     var cell=liste_cellules[r1];
     fire(cell,"bot");
-    console.log("FEUUUUU !");
 }
 
 function placeboat_IA() {
@@ -464,7 +464,6 @@ function placeboat_IA() {
                     let cell = document.getElementById(element);
                     cell.setAttribute('vide', "false");
                     cell.setAttribute('boat', img[el].getAttribute('id'));
-                    coloriage(cell, "black");
                 });
             }
         }
