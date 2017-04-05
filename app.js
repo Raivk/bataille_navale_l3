@@ -297,31 +297,16 @@ io.on('connection', function (socket) {
         }
     });
     
-    socket.on("relancer_ask", function(){
-        salonFound = findSalon(socket);
-        
+    socket.on("revenge", function(){
+       salonFound = findSalon(socket);
         if(salonFound == undefined){
-            console.log("room not found");
+            console("room not found");
         }
-        else{
-            if(salonFound.relancerAsk == true){
-                salonFound.socket1.emit("relancer_game");
-                salonFound.socket2.emit("relancer_game");
-            }
-            else{
-                salonFound.relancerAsk = true;
-                if(salonFound.socket1 == socket){
-                    salonFound.socket2.emit("notif_relancer");
-                }
-                else{
-                    salonFound.socket1.emit("notif_relancer");
-                }
-            }
+        else {
+            salonFound.boatOK = false;
+            salonFound.ready1 = false;
+            salonFound.ready2 = false;
         }
-    });
-    
-    socket.on("relaunch", function(){
-        
     });
     
     //DISCONNECT-------------------------------

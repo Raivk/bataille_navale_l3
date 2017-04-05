@@ -16,6 +16,44 @@ toastr.options = {
   "hideMethod": "fadeOut"
 };
 
+function explode(x, y) {
+  var particles = 30,
+    // explosion container and its reference to be able to delete it on animation end
+    explosion = $('<div class="explosion"></div>');
+
+  // put the explosion container into the body to be able to get it's size
+  $('body').append(explosion);
+
+  // position the container to be centered on click
+  explosion.css('left', x - explosion.width() / 2);
+  explosion.css('top', y - explosion.height() / 2);
+
+  for (var i = 0; i < particles; i++) {
+    // positioning x,y of the particle on the circle (little randomized radius)
+    var x = (explosion.width() / 2) + rand(80, 150) * Math.cos(2 * Math.PI * i / rand(particles - 10, particles + 10)),
+      y = (explosion.height() / 2) + rand(80, 150) * Math.sin(2 * Math.PI * i / rand(particles - 10, particles + 10)),
+      color = 252 + ', ' + 101 + ', ' + 26, // randomize the color rgb
+        // particle element creation (could be anything other than div)
+      elm = $('<div class="particle" style="' +
+        'background-color: rgb(' + color + ') ;' +
+        'top: ' + y + 'px; ' +
+        'left: ' + x + 'px"></div>');
+
+    if (i == 0) { // no need to add the listener on all generated elements
+      // css3 animation end detection
+      elm.one('webkitAnimationEnd oanimationend msAnimationEnd animationend', function(e) {
+        explosion.remove(); // remove this explosion container when animation ended
+      });
+    }
+    explosion.append(elm);
+  }
+}
+
+// get random number between min and max value
+function rand(min, max) {
+  return Math.floor(Math.random() * (max + 1)) + min;
+}
+
 var listeBoatJoueur = new Map();
 var listeBoatBot = new Map();
 var r;
@@ -23,6 +61,15 @@ var a_joue = false;
 var bateau_taille = [["porte-avion", 5], ["croiseur", 4], ["contre-torpilleur", 3], ["sous-marin", 3], ["torpilleur", 2]];
 
 var taille_bateaux = new Map(bateau_taille);
+
+//palette : http://www.palettable.io/99C2E1-FCF9F0-FEF88E-FFAB60-FFA07A
+
+var couleurFin = "black";
+var couleurCaseVide = "#99C2E1";
+var couleurCaseBateau = "#FCF9F0";
+var couleurRate = "#FEF88E";
+var couleurTouche = "#FFAB60";
+var couleurCoule = "#D45938";
 
 listeBoatBot.set("porte-avion", 0);
 listeBoatBot.set("croiseur", 0);
@@ -113,7 +160,13 @@ function selection(j){
     if (isdrag && (elem.target.getAttribute('id') == j.target.getAttribute('id'))){
         isdrag = false;
         elem = null;
+        j.target.classList.remove("boat_selected");
     } else {
+        var img = document.querySelectorAll('.boat');
+        for (var i = 0; i < img.length; i++) {
+            img[i].classList.remove("boat_selected");
+        }
+        j.target.classList.add("boat_selected");
         isdrag = true;
         elem = j;
     }
@@ -135,14 +188,14 @@ function eventclic(j) {
 function placementMouseover(j){
     if (isdrag == true) {
         div = j;
-        coloriage(j.target, 'black');
+        coloriage(j.target, couleurCaseBateau);
     }
 }
 
 function placementMouseout(j){
     if (isdrag == true) {
         div = null;
-        coloriage(j.target, '#99C2E1')
+        coloriage(j.target, couleurCaseVide)
     }
 }
 
@@ -208,7 +261,7 @@ function verouiller(j) {
         res = false;
     } else {
         for (var i = 0; i < liste.length; i++) {
-            coloriage(j, 'green');
+            coloriage(j, couleurCaseBateau);
             liste[i].setAttribute('vide', false);
             liste[i].setAttribute('boat', elem.target.getAttribute('id'));
         }
@@ -220,13 +273,13 @@ document.onkeydown = function (e) {
     e=e || window.event;
     var code=e.keyCode || e.wihch;
     if (code == 82 && isdrag == true && div != null) {
-        coloriage(div.target, '#99C2E1');
+        coloriage(div.target, couleurCaseVide);
         if (elem.target.getAttribute('pos') == "h"){
             elem.target.setAttribute('pos', 'v');
         } else {
             elem.target.setAttribute('pos', 'h');
         }
-        coloriage(div.target, 'black');
+        coloriage(div.target, couleurCaseBateau);
     }
 }
 
@@ -255,11 +308,17 @@ function jouer(){
 }
 
 function debutaction() {
+    if (!gamefinie) { 
+        document.getElementById("gamestate").innerHTML = "C'est à vous de jouer"; 
+    }
     initlistener();
     
 }
 
 function debutattente() {
+    if (!gamefinie) {
+        document.getElementById("gamestate").innerHTML = "C'est au tour de l'adversaire";
+    }
     removelistener();
     setTimeout(play_IA, 2000);
 }
@@ -272,21 +331,27 @@ function fire(j, tour){
 	if(tour != undefined){
 		//jouerBot
         if(j.getAttribute('vide')=="false"){
-            coloriage(j, 'purple');
+            coloriage(j, couleurTouche);
             j.setAttribute('toucheB',true);
             listeBoatJoueur.set(j.getAttribute('boat'), listeBoatJoueur.get(j.getAttribute('boat'))+1);
             toastr.warning("L'ennemi a touché votre "+j.getAttribute("boat")+".");
             if(listeBoatJoueur.get(j.getAttribute("boat")) == taille_bateaux.get(j.getAttribute("boat"))) {
                 let bateauxCoules = document.querySelector('.grid-j').querySelectorAll('[boat='+j.getAttribute("boat")+']');
                 bateauxCoules.forEach(function(element){
-                    coloriage(element, "black");
+                    coloriage(element, couleurCoule);
                     element.getAttribute("couler", true);
                     toastr.error("L'ennemi a coulé votre "+j.getAttribute("boat")+".");
+                    var rect = element.getBoundingClientRect();
+                    explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
                 })
+                $("body").effect("shake");
+            } else {
+                var rect = j.getBoundingClientRect();
+                explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
             }
         }
         else{
-            coloriage(j, 'yellow');
+            coloriage(j, couleurRate);
         }
         j.setAttribute('toucher',true);
         test_Game();
@@ -298,21 +363,27 @@ function fire(j, tour){
 		var cell = document.getElementById(pos);
 		if(cell.getAttribute('toucher') == undefined){
 			if(cell.getAttribute('vide')=="false"){
-				coloriage(cell, 'purple');
+				coloriage(cell, couleurTouche);
 				cell.setAttribute('toucheB',true);
                 listeBoatBot.set(cell.getAttribute('boat'), listeBoatBot.get(cell.getAttribute('boat'))+1);
                 toastr.info("Vous avez touché un bateau !");
                 if(listeBoatBot.get(cell.getAttribute("boat")) == taille_bateaux.get(cell.getAttribute("boat"))) {
                     let bateauxCoules = document.querySelector('.grid-b').querySelectorAll('[boat='+cell.getAttribute("boat")+']');
                     bateauxCoules.forEach(function(element){
-                        coloriage(element, "black");
+                        coloriage(element, couleurCoule);
                         element.getAttribute("couler", true);
+                        var rect = element.getBoundingClientRect();
+                        explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
                     })
+                    $("body").effect( "shake" );
                     toastr.success("Vous avez coulé le "+cell.getAttribute("boat")+ " ennemi.");
+                } else {
+                    var rect = cell.getBoundingClientRect();
+                    explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
                 }
 			}
 			else{
-				coloriage(cell, 'yellow');
+				coloriage(cell, couleurRate);
                 toastr.warning("C'est loupé !");
 			}
 			cell.setAttribute('toucher',true);
@@ -380,16 +451,20 @@ function supprimg() {
 }
 
 function fingame(player) {
-    gamefinie = true;
-    if(player == "joueur"){
-        alert("GG WP");
-        window.location.href = "index.html";
+    document.getElementById("gamestate").innerHTML = "Partie terminée !";
+    if (!gamefinie) {
+        gamefinie = true;
+        if(player == "joueur"){
+            toastr.success("Félicitations !","Victoire !");
+        }
+        else{
+            toastr.error("Défaite...","Dommage !");
+        }
+        setTimeout(function() {  
+            window.location.href = "index.html";
+        }, 5000);
+        removelistener();
     }
-    else{
-        alert("Vous êtes mauvais ! Vous avez perdu !");
-        //window.location.href = "index.html";
-    }
-    removelistener();
 }
 
 function reset() {

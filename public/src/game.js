@@ -158,6 +158,7 @@ function rejoindre_prive(){
 //READY-------------------------------------
 
 function menu_pret(){
+    socket.removeListener("player_left");
     socket.on("player_left", function(){
         console.log("other player left the game");
         
@@ -207,6 +208,44 @@ function declarer_pret(){
 
 //INGAME-------------------------------------
 
+function explode(x, y) {
+  var particles = 30,
+    // explosion container and its reference to be able to delete it on animation end
+    explosion = $('<div class="explosion"></div>');
+
+  // put the explosion container into the body to be able to get it's size
+  $('body').append(explosion);
+
+  // position the container to be centered on click
+  explosion.css('left', x - explosion.width() / 2);
+  explosion.css('top', y - explosion.height() / 2);
+
+  for (var i = 0; i < particles; i++) {
+    // positioning x,y of the particle on the circle (little randomized radius)
+    var x = (explosion.width() / 2) + rand(80, 150) * Math.cos(2 * Math.PI * i / rand(particles - 10, particles + 10)),
+      y = (explosion.height() / 2) + rand(80, 150) * Math.sin(2 * Math.PI * i / rand(particles - 10, particles + 10)),
+      color = 252 + ', ' + 101 + ', ' + 26, // randomize the color rgb
+        // particle element creation (could be anything other than div)
+      elm = $('<div class="particle" style="' +
+        'background-color: rgb(' + color + ') ;' +
+        'top: ' + y + 'px; ' +
+        'left: ' + x + 'px"></div>');
+
+    if (i == 0) { // no need to add the listener on all generated elements
+      // css3 animation end detection
+      elm.one('webkitAnimationEnd oanimationend msAnimationEnd animationend', function(e) {
+        explosion.remove(); // remove this explosion container when animation ended
+      });
+    }
+    explosion.append(elm);
+  }
+}
+
+// get random number between min and max value
+function rand(min, max) {
+  return Math.floor(Math.random() * (max + 1)) + min;
+}
+
 function hide_boat_placement(){
     document.getElementsByClassName("boats")[0].classList.add("hide_by_default");
     document.getElementById("show_bt").classList.remove("hide_by_default");
@@ -231,12 +270,8 @@ function start_game(){
 }
 
 function quitter_partie(){
-    document.getElementById("show_bt").classList.add("hide_by_default");
-    document.getElementById("gamestate").innerHTML = "Phase de préparation";
-    socket.emit("quit_game");
-    socket.removeListener("player_left");
-    socket.removeListener("boat_placed");
     switch_page("ingame","home");
+    socket.emit("quit_game");
     reset();
 }
 
@@ -248,6 +283,7 @@ var elem;
 var div;
 var gamefinie = false;
 
+//c'eation de la grille de div
 function createGrid() {
 	var gridDivj = document.querySelectorAll('.grid-j');
 	var gridDivb = document.querySelectorAll('.grid-b');
@@ -262,6 +298,7 @@ function createGrid() {
     rotateimg();
 }
 
+//creation et ajout des attributs pour la grille cote joueur
 function gridj(gridDiv, pos, i, j){
     var el = document.createElement('div');
     el.setAttribute('data-x', i);
@@ -278,6 +315,7 @@ function gridj(gridDiv, pos, i, j){
     gridDiv[pos].appendChild(el);
 }
 
+//creation et ajout des attributs pour la grille cote "bot"/adversaire
 function gridb(gridDiv, pos, i, j){
     var el = document.createElement('div');
     el.setAttribute('data-x', i);
@@ -290,6 +328,8 @@ function gridb(gridDiv, pos, i, j){
     el.self = this;
     gridDiv[pos].appendChild(el);
 }
+
+//ajout des listener sur les images de bateaux
 function rotateimg() {
 	var img = document.querySelectorAll('.boat');
 	for (var i = 0; i < img.length; i++) {
@@ -297,16 +337,24 @@ function rotateimg() {
 	}
 }
 
+// action effectuer lors du clic sur une image de bateau
 function selection(j){
     if (isdrag && (elem.target.getAttribute('id') == j.target.getAttribute('id'))){
         isdrag = false;
         elem = null;
+        j.target.classList.remove("boat_selected");
     } else {
+        var img = document.querySelectorAll('.boat');
+        for (var i = 0; i < img.length; i++) {
+            img[i].classList.remove("boat_selected");
+        }
+        j.target.classList.add("boat_selected");
         isdrag = true;
         elem = j;
     }
 }
-                                
+ 
+// action effectuer lors du clic sur une div de la grille cote joueur
 function eventclic(j){
     if (isdrag && valide) {
         if (verouiller(j.target)) {
@@ -320,6 +368,8 @@ function eventclic(j){
     }
 }
 
+
+// action quand la souris passe sur une div de la grille joueur
 function placementMouseover(j){
     if (isdrag == true) {
         div = j;
@@ -327,6 +377,7 @@ function placementMouseover(j){
     }
 }
 
+// action quand la souris sort du'une div de la grille
 function placementMouseout(j){
     if (isdrag == true) {
         div = null;
@@ -334,10 +385,13 @@ function placementMouseout(j){
     }
 }
 
+//calcul de la position d'une div 
 function point(j, x, y) {
    return (document.getElementById('' + (parseInt(Math.floor(j.getAttribute('data-x')) + parseInt(Math.floor(x)))) + '' + (parseInt(Math.floor(j.getAttribute('data-y')) + parseInt(Math.floor(y))))));
 }
 
+
+//fait la liste des cases correspondant a une div
 function listecase(j) {
     var tailleboat = elem.target.getAttribute('taille');
     var liste = [];
@@ -365,6 +419,8 @@ function listecase(j) {
     return liste;
 }
 
+
+//colore une div suivant une couleur passer dans les parametre
 function coloriage(j, couleur) {
     if (elem == null) {
         j.style.backgroundColor = couleur;
@@ -378,6 +434,7 @@ function coloriage(j, couleur) {
     }
 }
 
+//si une liste comprend un element non vide alors elle est verouiller. la fonction renvoi alors true, false sinon
 function estVerouiller(liste){
     var res = false;
     for (var i = 0; i < liste.length; i++) {
@@ -388,6 +445,7 @@ function estVerouiller(liste){
     return res;
 }
 
+//verrouille une case et confirme son verrouillage
 function verouiller(j) {
     var res = true;
     var liste = listecase(j);
@@ -403,6 +461,8 @@ function verouiller(j) {
     return res;
 }
 
+
+//permet la rotation d'un bateau lors de l'appui sur la touche "r"
 document.onkeydown = function (e) {
     e=e || window.event;
     var code=e.keyCode || e.wihch;
@@ -417,8 +477,7 @@ document.onkeydown = function (e) {
     }
 }
 
-
-
+// verifi si tout les batteau sont placé pui lance le jeu
 function jouer(){
     var bool = true;
     var img = document.getElementsByClassName("boat");
@@ -442,6 +501,7 @@ function jouer(){
     }
 }
 
+//debut dun tour pour un joueur si la partie n'est pas finie et que c'est a lui de jouer
 function debutaction() {
     if (!gamefinie) {
         document.getElementById("gamestate").innerHTML = "C'est à vous de jouer";
@@ -450,6 +510,8 @@ function debutaction() {
     initlistener();
 }
 
+
+//place le joueur en mode attente si la partie n'est pas finie
 function debutattente() {
     removelistener();
     if (!gamefinie) {
@@ -462,6 +524,8 @@ function debutattente() {
     });
 }
 
+
+//retourne l'id des cellules d'un bateau
 function getboat(j) {
     var listeb = [];
     var bateau = j.getAttribute("boat");
@@ -474,6 +538,25 @@ function getboat(j) {
     return listeb;
 }
 
+//appelée en fin de partie, animation de destruction du plateau du perdant, et départ sur l'écran de revanche / pret
+function destroy(cells, ind, max) {
+    coloriage(cells[ind], couleurFin);
+    var rect = cells[ind].getBoundingClientRect();
+    explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
+    if((ind + 1) < max) {
+        setTimeout(destroy, 75, cells, ind+1, max);
+    } else {
+        $("body").effect("shake");
+        setTimeout(function() {
+            reset();
+            switch_page("ingame","ready");
+            toastr.info("Une revanche ?");
+            menu_pret();
+        }, 5000);
+    }
+}
+
+//fonction d'attente du joueur. attend les informations d'attaque de l'adversaire et agit en fonction
 function isVide(j) {
     var part1 = document.getElementById(j).getAttribute("vide");
     var res = [part1];
@@ -488,20 +571,18 @@ function isVide(j) {
             if (isFin()) {
                 toastr.error("Vous avez perdu...", "Dommage !", inGameToastOptions);
                 part1 = 3;
-                var gridDiv = document.querySelectorAll('.player');
-                for (var grid = 0; grid < gridDiv.length; grid++) {
-                    coloriage(gridDiv[grid], couleurFin);
-                }
                 var gridDiv = document.querySelectorAll('.bot');
                 for (var grid = 0; grid < gridDiv.length; grid++) {
                     coloriage(gridDiv[grid], couleurFin);
                 }
-                fingame();
+                fingame(".player");
             } else {
                 toastr.error("Un de vos bateaux a coulé...", "Attaque ennemie !", inGameToastOptions);
             }
             res = [part1, part2];
         } else {
+            var rect = document.getElementById(j).getBoundingClientRect();
+            explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
             toastr.warning("Un de vos bateaux a été touché...", "Attaque ennemie !", inGameToastOptions);
         }
     } else {
@@ -513,6 +594,7 @@ function isVide(j) {
     return res;
 }
 
+// dit si la partie est finie ou non
 function isFin() {
     var gridDiv = document.querySelectorAll('.player');
     var taillecoul = 0;
@@ -527,6 +609,7 @@ function isFin() {
     return false;
 }
 
+//verifi si un bateau est couler et le colore si c'est le cas
 function iscouler(j) {
     var gridDiv = document.querySelectorAll('.player');
     var bateau = j.getAttribute("boat");
@@ -538,31 +621,41 @@ function iscouler(j) {
     }
     if (tailletouch == document.getElementById(bateau).getAttribute("taille")) {
         for (var grid = 0; grid < gridDiv.length; grid++) {
-        if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
-            coloriage(gridDiv[grid], couleurCoule);
-            gridDiv[grid].setAttribute("couler", "true");
-            tailletouch++;
+            if (gridDiv[grid].getAttribute("boat") == bateau && gridDiv[grid].getAttribute("toucher") == "true") {
+                coloriage(gridDiv[grid], couleurCoule);
+                gridDiv[grid].setAttribute("couler", "true");
+                tailletouch++;
+                var rect = gridDiv[grid].getBoundingClientRect();
+                explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
+            }
         }
-    }
+        $("body").effect("shake");
         return true;
     }
     return false;
 }
 
+// fonction d'action du joueur. envoi a l'adversaire un id de div et agit en fonction du retour de celui-ci
 function fire(j){
     var pos = "" + j.target.getAttribute("data-x") + j.target.getAttribute("data-y");
+    document.getElementById(j.target.getAttribute("data-x") + "b" + j.target.getAttribute("data-y")).setAttribute("toucher", true);
     socket.emit("player_attack", pos);
     socket.on("result_attack", function(data) {
         if (data[0] == 1) {
             toastr.success("Touché !", "Résultat de votre attaque", inGameToastOptions);
             coloriage(j.target, couleurTouche);
+            var rect = j.target.getBoundingClientRect();
+            explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
         } else  if (data[0] == 2) {
             toastr.success("Coulé !", "Résultat de votre attaque", inGameToastOptions);
             coloriage(j.target, couleurTouche);
             for (var i = 0; i < data[1].length; i++) {
                 coloriage(document.getElementById(data[1][i]), couleurCoule);
                 document.getElementById(data[1][i]).setAttribute("couler","true");
+                var rect = document.getElementById(data[1][i]).getBoundingClientRect();
+                explode(rect.left + (Math.abs(rect.left - rect.right) / 2), rect.top + (Math.abs(rect.top - rect.bottom) / 2));
             }
+            $("body").effect("shake");
         } else if (data[0] == 3) {
             toastr.success("Victoire !", "Félicitations !", inGameToastOptions);
             coloriage(j.target, couleurTouche);
@@ -572,13 +665,10 @@ function fire(j){
             }
             var gridDiv = document.querySelectorAll('.player');
             for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], couleurCoule);
+                coloriage(gridDiv[grid], couleurFin);
             }
-            var gridDiv = document.querySelectorAll('.bot');
-            for (var grid = 0; grid < gridDiv.length; grid++) {
-                coloriage(gridDiv[grid], couleurCoule);
-            }
-            fingame();
+            socket.emit("revenge");
+            fingame(".bot");
         } else {
             toastr.info("Raté !", "Résultat de votre attaque", inGameToastOptions);
             coloriage(j.target, couleurRate);
@@ -588,16 +678,19 @@ function fire(j){
     });
 }
 
+// creer les listener sur les div de la grille "bot"/adversaire
 function initlistener() {
     if (!gamefinie) {
         var gridDiv = document.querySelectorAll('.bot');
         for (var grid = 0; grid < gridDiv.length; grid++) {
-            gridDiv[grid].setAttribute('vide', true);
-            gridDiv[grid].addEventListener('click', fire, false);
+            if ( gridDiv[grid].getAttribute('toucher') != "true" ) {
+                gridDiv[grid].addEventListener('click', fire, false);
+            }
         }
 	}
 }
 
+//enleve les listener sur la grille "bot"/adversaire
 function removelistener() {
     var gridDiv = document.querySelectorAll('.bot');
     for (var grid = 0; grid < gridDiv.length; grid++) {
@@ -605,6 +698,7 @@ function removelistener() {
     }
 }
 
+//cache les images de bateaux et leur enleve les listener
 function supprimg() {
     document.getElementById("show_bt").classList.add("hide_by_default");
     document.querySelector('.boats').classList.add("hide_by_default");
@@ -617,13 +711,21 @@ function supprimg() {
 	}
 }
 
-function fingame() {
-    document.getElementById("gamestate").innerHTML = "Partie terminée !";
-    gamefinie = true;
-    removelistener();
+//fini la partie
+function fingame(destroy_selector) {
+    if (!gamefinie) {
+        gamefinie = true;
+        removelistener();
+        document.getElementById("gamestate").innerHTML = "Partie terminée !";
+        
+        var gridDiv = document.querySelectorAll(destroy_selector);
+        destroy(gridDiv, 0, gridDiv.length);
+    }
 }
 
+// detruit toutes les cellules de la page et les recrée
 function reset() {
+    gamefinie = false;
     var gridDiv = document.querySelectorAll('.grid-cell');
     for (var grid = 0; grid < gridDiv.length; grid++) {
         gridDiv[grid].remove();
@@ -632,5 +734,12 @@ function reset() {
     var img = document.getElementsByClassName("boat");
     for (var el = 0; el < img.length; el++) {
         img[el].classList.remove("hide_by_default");
+        img[el].classList.remove("boat_selected");
     }
+    document.getElementById("show_bt").classList.add("hide_by_default");
+    document.getElementById("gamestate").innerHTML = "Phase de préparation";
+    socket.removeListener("player_left");
+    socket.removeListener("boat_placed");
+    socket.removeListener("player_attack");
+    socket.removeListener("result_attack");
 }

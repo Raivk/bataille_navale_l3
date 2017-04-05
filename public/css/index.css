@@ -54,6 +54,10 @@ canvas {
     margin:auto;
 }
 
+.boat_selected {
+    border: solid 2px dodgerblue;
+}
+
 .hide_by_default{
     display: none;
 }
@@ -217,4 +221,30 @@ body {
   0% { margin-left: 0px; margin-right: 100%; }
   50% { margin-left: 25%; margin-right: 0%; }
   100% { margin-left: 100%; margin-right: 0; }
+}
+
+.explosion {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: pop 1s reverse forwards;
+}   
+
+@keyframes pop {
+  from {
+    opacity: 0;
+  }
+  to {
+    top: 50%;
+    left: 50%;
+    opacity: 1;
+  }
 }
