@@ -1,4 +1,4 @@
-# io_game
+# naval_battle
 Project of a simple multiplayer web browser game
 
 Installation :
@@ -6,9 +6,8 @@ Installation :
 Install node.js
 clone repository
 in root of project:
-run the following commands :
-npm install --save express
-npm install --save socket.io
+run the following command :
+npm install
 
 Run :
 
